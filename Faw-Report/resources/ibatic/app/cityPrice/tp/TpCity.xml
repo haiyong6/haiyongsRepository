@@ -1,0 +1,1057 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="tpCity">
+
+<select id="initDate" resultClass="java.util.HashMap">
+	Select to_char(to_date(e,'yyyy-MM'),'yyyy-MM') Begindate,
+       	   to_char(to_date(b,'yyyy-MM'),'yyyy-MM') Enddate
+	  From (
+	  Select Min(p.Ym) e,Max(p.Ym) b From Fdm_Version_City_Price p
+	)
+</select>
+
+<select id="findPurchaseCity" resultClass="java.util.HashMap">
+	Select Distinct v.Year,
+                (Select Wmsys.Wm_Concat(Tv.City_Name)
+                   From v_User_Purchaser_City Tv Where v.Year = tv.Year) city
+  		From v_User_Purchaser_City v
+ 	Order By v.Year Desc
+</select>
+
+<select id="findPurchaseCityByYear" resultClass="java.util.HashMap">
+	Select v.City_Id cityId, v.City_Name cityname, v.Csort csort
+  			From v_User_Purchaser_City v
+ 		Where v.Year = $cityYear$
+ 	 Order By Csort
+</select>
+
+<select id="getMainData" resultClass="com.ways.app.cityPrice.model.FawCityTp">
+	<!-- 查询一汽大众的所有型号的基础信息表（一汽大众的用户组） -->
+
+		
+				select tab.* from (
+							With Base As(
+							  Select Version.version_Id versionId,
+							         Version.version_Code versionCode,
+							         Version.version_name_cn versionnamecn,
+                                     Version.version_name_en versionnameen,
+							         to_char(Version.Launch_Date,'YYYY/MM/DD') as launchDate,
+							         Segment.Parent_Grade_Name segmentParentName,
+                             		 Segment.Grade_Name_Cn || '-' || Segment.Sub_Grade_Name segmentNameCn,
+                             		 Segment.Grade_Name_En || '-' || Segment.Sub_Grade_Name SegmentNameEn,
+							         Manf.Manf_Name_Cn ManfNameCn,
+							         Manf.Manf_Name_En ManfNameEn,
+							         Brand.Brand_Name_Cn BrandNameCn,
+							         Brand.Brand_Name_En BrandNameEn,
+							         Emissions.Emissions_Name EmissionsName,
+							         Transmission.Trnsms_Name_Cn TrnsmsNameCn,
+							         Transmission.Trnsms_Name_En TrnsmsNameEn,
+							         Version.Version_Short_Name_Cn VersionShortNameCn,
+							         Version.Version_Short_Name_En VersionShortNameEn，  
+							         Submodel.Submodel_Name_Cn SubmodelNameCn,
+							         Submodel.Submodel_Name_En SubmodelNameEn,
+							         w_Bodytype.Body_Type_Name_Cn BodyTypeNameCn,
+							         w_Bodytype.Body_Type_Name_En BodyTypeNameEn,
+							         Submodel.Submodel_Id submodelId
+							    From Fdm_Car_Version Version
+							  <!-- 月报 -->
+							  <isEqual property="qReportType" compareValue="1">
+							   Inner Join Fdm_Faw_Report_Version_Month Monthversion On Monthversion.version_Id = Version.version_Id
+							  </isEqual>
+							  <!-- 周报 -->
+							  <isEqual property="qReportType" compareValue="0">
+							   Inner Join fdm_faw_report_version_week weekVersion On weekVersion.version_Id = version.version_Id
+							  </isEqual>
+							  
+							   Inner Join Fdm_Car_Submodel             Submodel       On Version.submodel_Id = Submodel.submodel_Id  
+							   Inner Join Fdm_Car_Model                Model          On Submodel.Model_Id = Model.Model_Id  
+							   Inner Join Fdm_Car_Manf                 Manf           On Submodel.Manf_Id = Manf.Manf_Id  
+							   Inner Join Fdm_Car_Brand                Brand          On Submodel.Brand_Id = Brand.Brand_Id  
+							   Inner Join V_Faw_Info_Grade             M_Segment      On Model.Model_Id = M_Segment.Model_Id  
+							   Inner Join V_Faw_Grade                  Segment        On M_Segment.Grade_Id = Segment.Grade_Id
+							   Inner Join Fdm_Car_Emissions            Emissions      On Version.Emissions_Id = Emissions.Emissions_Id  
+							   Inner Join Fdm_Car_Transmission         Transmission   On Version.Trnsms_Id = Transmission.Trnsms_Id  
+							   Inner Join Fdm_Faw_Body_Type            f_Bodytype     On f_Bodytype.submodel_Id = Submodel.submodel_Id  
+							   Inner Join Fdm_Ways_Body_Type           w_Bodytype     On f_Bodytype.Body_Type_Id = w_Bodytype.Body_Type_Id
+							  
+							   Where 
+							 <!--   m_Segment.Group_Id = 2 And -->
+							   f_Bodytype.Group_Id = 2 
+							   <!-- and version.version_id =3587 -->
+							),
+							Msrp As(
+							Select Base.versionId, Base.versionCode,Msrp.Ym, Msrp.Msrp, Msrp.Week
+							  From Fdm_Version_State_Msrp Msrp
+							 Inner Join Base              Base         On Base.versionId = Msrp.Version_Id
+							 Where Msrp.Ym Between '$qBeginDate$' And '$qEndDate$'
+							 <!-- 月报 -->
+						     <isEqual property="qReportType" compareValue="1">
+						   		  And Msrp.Week In (6, 7)
+						     </isEqual>
+						     <!-- 周报 -->
+						     <isEqual property="qReportType" compareValue="0">
+						  		  And Msrp.Week In (1, 2,3,4)
+						     </isEqual>
+							),
+							Tp As(
+							Select Distinct version_Id, version_Code,Ym,Week,City_Id,cSort, minPrice,minPrices,minpriceFawvw,
+                         Case
+                           When Max(e.MaxCityMix)
+                            over(partition by
+                           version_Id,Ym, Week) Is Not Null Then
+                             Sum(e.price)
+                            Over(Partition By version_Id,Ym, Week)
+                             Else
+                                 Avg(e.minPrice)
+                               Over(Partition By version_Id, Ym,Week)
+                               End price,
+                                Case
+						When Max(e.MaxCityMix)
+                             over(partition by version_Id, Ym, Week) Is Not Null Then
+                           Sum(e.prices)
+                            Over(Partition By version_Id, Ym,  Week)
+                          Else
+                             Avg(e.minPrices)
+                                Over(Partition By  version_Id,  Ym,Week)
+                            End prices,
+                            Case
+                            When Max(e.MaxCityMix)
+                           over(partition by version_Id, Ym, Week) Is Not Null Then
+                            Sum(e.priceFawvw)
+                             Over(Partition By version_Id,Ym, Week)
+                            Else
+                            Avg(e.minpriceFawvw)
+                            Over(Partition By  version_Id,  Ym, Week)
+                            End priceFawvw
+                             From (Select version_Id, version_Code, Ym, Week,  City_Id,  cSort,   Min(Min_Price) minPrice,
+                            Min(prices) minPrices, Max(Value) maxCityMix, min(priceFawvw) minpriceFawvw,
+                              Case
+                           When Max(value) Is Not Null Then
+                            min(Min_Price) * ratio_to_report(sum(value))
+                            over(partition by version_Id, Ym,   Week)
+                           Else
+                            Null
+                           End price,
+                           Case
+                          When Max(value) Is Not Null Then
+                              min(prices) * ratio_to_report(sum(value))
+                            over(partition by version_Id,Ym, Week)
+                           Else
+                            Null
+                             End prices,
+                             Case
+                           When Max(value) Is Not Null Then
+                             min(priceFawvw) * ratio_to_report(sum(value))
+                             over(partition by version_Id, Ym,  Week)
+                             Else
+                             Null
+                             End priceFawvw
+                            From (Select tp.version_Id,  tp.version_Code, tp.Ym,    tp.Week,  tp.Min_Price,
+                             tp.City_Id,Purchasercity.cSort,  Citymix.Value, tp.price as prices,tp.price_fawvw as priceFawvw
+							                    From Fdm_Version_City_Price tp           
+							                    Inner Join Base                  Base          On Base.versionId = tp.version_Id
+							                    Inner Join v_User_Purchaser_City Purchasercity On tp.City_Id = Purchasercity.City_Id
+							                    Left  Join <!-- Fdm_Model_City_Mix_test -->Fdm_Model_City_Mix    Citymix       On Base.submodelId = Citymix.Sub_Model_Id
+							                     And  tp.City_Id = Citymix.City_Id
+							                <!-- 之前4.0系统中是通过自动判断的,现在修改为手动选择(所选时间成交价对应城市Mix由界面操作指定关联) -->    
+							                <!-- And Citymix.Year = (Case When tp.Year <![CDATA[ <= ]]> 2013 Then 2013 Else tp.Year - 1 End) -->
+							                	 <isNotNull property="qDateType">
+							                	 And Citymix.Year = ($qDateType$ -1)
+							                	 </isNotNull>
+							                   Where tp.Ym Between '$qBeginDate$' And '$qEndDate$' And (tp.Min_Price is Not Null Or tp.Price is Not Null)
+							                  <!-- 月报 -->
+											  <isEqual property="qReportType" compareValue="1">
+											   		And tp.Week In (6, 7)
+											  </isEqual>
+											  <!-- 周报 -->
+											  <isEqual property="qReportType" compareValue="0">
+											  		And tp.Week In (1,2,3,4)
+											  </isEqual>
+											  
+											  <isNotNull property="qDateType">
+							                	 	And Purchasercity.Year = $qDateType$
+							                  </isNotNull>
+							            )d
+							       Group By d.version_Id,d.version_Code,d.Ym,d.Week,d.City_Id,d.cSort
+							    )e    
+							)
+							Select /*+ rule */ 
+							base.versionCode,
+							base.segmentParentName,
+							base.segmentNameCn,
+							base.segmentNameEn,
+							base.versionnamecn,
+                            base.versionnameen,
+							base.manfNameCn,
+							base.manfNameEn,
+							base.brandNameCn,
+							base.brandNameEn,
+							base.emissionsName,
+							base.trnsmsNameCn,
+							base.trnsmsNameEn,
+							base.versionShortNameCn,
+							base.versionShortNameEn,
+							base.submodelNameCn,
+							base.submodelNameEn,
+							base.bodyTypeNameCn,
+							base.bodyTypeNameEn,
+							base.launchDate,
+							tp.ym,
+							tp.week,
+							msrp.Msrp,
+							city.city_name_cn cityNameCn,
+							city.city_name_en cityNameEn,
+							tp.cSort,
+							tp.minPrice,
+							tp.minPrices,
+							tp.minpriceFawvw,
+							round(tp.price) price,
+							round(tp.prices) prices,
+							round(tp.priceFawvw) priceFawvw
+							
+							From Tp tp
+							left  Join Msrp msrp On tp.version_Id = msrp.versionId
+							And tp.ym = msrp.ym And tp.week = msrp.week
+							Inner Join fdm_city city On tp.city_id = city.city_id 
+							Inner Join Base base On base.versionId = tp.version_Id
+				)tab where 1=1
+				<isNotEmpty property="qYm" prepend="and">
+					upper(tab.ym) like upper('%$qYm$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qWeek" prepend="and">
+		       		Decode(tab.week,1,'第一周',2,'第二周',3,'第三周',4,'第四周',6,'上半月',7,'下半月') like upper('%$qWeek$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qVersionCode" prepend="and">
+		       		upper(tab.versioncode) like upper('%$qVersionCode$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qSegmentNameCn" prepend="and">
+		       		upper(tab.segmentNameCn) like upper('%$qSegmentNameCn$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qBrandNameCn" prepend="and">
+					upper(tab.brandNameCn) like upper('%$qBrandNameCn$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qManfNameCn" prepend="and">
+		       		upper(tab.manfNameCn) like upper('%$qManfNameCn$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qSubmodelNameCn" prepend="and">
+		       		upper(tab.submodelNameCn) like upper('%$qSubmodelNameCn$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qBodyTypeNameCn" prepend="and">
+		       		upper(tab.bodyTypeNameCn) like upper('%$qBodyTypeNameCn$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qVersionShortNameCn" prepend="and">
+					upper(tab.versionShortNameCn) like upper('%$qVersionShortNameCn$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qEmissionsName" prepend="and">
+		       		upper(tab.emissionsName) like upper('%$qEmissionsName$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qTrnsmsNameCn" prepend="and">
+		       		upper(tab.trnsmsNameCn) like upper('%$qTrnsmsNameCn$%')
+		        </isNotEmpty>
+		       <isNotEmpty property="qLaunchDate" prepend="and">
+		       		upper(tab.launchDate) like upper('%$qLaunchDate$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qMsrp" prepend="and">
+		       		upper(tab.msrp) like upper('%$qMsrp$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qCityNameCn" prepend="and">
+					upper(tab.cityNameCn) like upper('%$qCityNameCn$%')
+		        </isNotEmpty>
+ 		        <isNotEmpty property="qMinPrice" prepend="and">
+		       		upper(tab.minPrice) like upper('%$qMinPrice$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qPrice" prepend="and">
+		       		upper(tab.price) like upper('%$qPrice$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qPrices" prepend="and">
+		       		upper(tab.prices) like upper('%$qPrices$%')
+		        </isNotEmpty>
+				<isNotEmpty property="order">
+					$order$ 
+				</isNotEmpty>
+				<isEmpty property="order">
+					order by tab.ym,tab.week,tab.versioncode Desc,tab.cSort Asc 
+				</isEmpty>
+</select>
+
+<select id="getMainDataEx" resultClass="com.ways.app.cityPrice.model.FawCityTp">
+	<!-- 查询一汽大众的所有型号的基础信息表（一汽大众的用户组） -->
+		
+				select tab.* from (				
+				 With Base As (Select Version.version_Id versionId,
+			       Version.version_Code versionCode,
+			       Version.version_name_cn versionnamecn,
+			       Version.version_name_en versionnameen,
+			       to_char(Version.Launch_Date, 'YYYY/MM/DD') as launchDate,
+			       Segment.Parent_Grade_Name segmentParentName,
+                   Segment.Grade_Name_Cn || '-' || Segment.Sub_Grade_Name segmentNameCn,
+                   Segment.Grade_Name_En || '-' || Segment.Sub_Grade_Name SegmentNameEn,
+			       Manf.Manf_Name_Cn ManfNameCn,
+			       Manf.Manf_Name_En ManfNameEn,
+			       Brand.Brand_Name_Cn BrandNameCn,
+			       Brand.Brand_Name_En BrandNameEn,
+			       Emissions.Emissions_Name EmissionsName,
+			       Transmission.Trnsms_Name_Cn TrnsmsNameCn,
+			       Transmission.Trnsms_Name_En TrnsmsNameEn,
+			       Version.Version_Short_Name_Cn VersionShortNameCn,
+			       Version.Version_Short_Name_En VersionShortNameEn， Submodel.Submodel_Name_Cn SubmodelNameCn,
+			       Submodel.Submodel_Name_En SubmodelNameEn,
+			       w_Bodytype.Body_Type_Name_Cn BodyTypeNameCn,
+			       w_Bodytype.Body_Type_Name_En BodyTypeNameEn,
+			       Submodel.Submodel_Id submodelId
+				  From Fdm_Car_Version Version
+				  
+				  <!-- 月报 -->
+				  <isEqual property="qReportType" compareValue="1">
+						Inner Join Fdm_Faw_Report_Version_Month Monthversion On Monthversion.version_Id = Version.version_Id
+				   </isEqual>
+					<!-- 周报 -->
+					<isEqual property="qReportType" compareValue="0">
+							   Inner Join fdm_faw_report_version_week weekVersion On weekVersion.version_Id = version.version_Id
+					</isEqual>
+				  <!-- 
+				            Inner Join fdm_faw_report_version_week weekVersion
+				    On weekVersion.version_Id = version.version_Id
+				     -->
+				    
+				            Inner Join Fdm_Car_Submodel Submodel
+				    On Version.submodel_Id = Submodel.submodel_Id
+				            Inner Join Fdm_Car_Model Model
+				    On Submodel.Model_Id = Model.Model_Id
+				            Inner Join Fdm_Car_Manf Manf
+				    On Submodel.Manf_Id = Manf.Manf_Id
+				            Inner Join Fdm_Car_Brand Brand
+				    On Submodel.Brand_Id = Brand.Brand_Id
+				            Inner Join V_Faw_Info_Grade M_Segment
+				    On Model.Model_Id = M_Segment.Model_Id
+				            Inner Join V_Faw_Grade Segment
+				    On M_Segment.Grade_Id = Segment.Grade_Id
+				            Inner Join Fdm_Car_Emissions Emissions
+				    On Version.Emissions_Id = Emissions.Emissions_Id
+				            Inner Join Fdm_Car_Transmission Transmission
+				    On Version.Trnsms_Id = Transmission.Trnsms_Id
+				            Inner Join Fdm_Faw_Body_Type f_Bodytype
+				    On f_Bodytype.submodel_Id = Submodel.submodel_Id
+				            Inner Join Fdm_Ways_Body_Type w_Bodytype
+				    On f_Bodytype.Body_Type_Id =
+				       w_Bodytype.Body_Type_Id
+				            Where f_Bodytype.Group_Id = 2)
+                                
+			       SELECT 
+			          base.versionCode,
+			          base.segmentParentName,
+			          base.segmentNameCn,
+			          base.segmentNameEn,
+			          base.versionnamecn,
+			          base.versionnameen,
+			          base.manfNameCn,
+			          base.manfNameEn,
+			          base.brandNameCn,
+			          base.brandNameEn,
+			          base.emissionsName,
+			          base.trnsmsNameCn,
+			          base.trnsmsNameEn,
+			          base.versionShortNameCn,
+			          base.versionShortNameEn,
+			          base.submodelNameCn,
+			          base.submodelNameEn,
+			          base.bodyTypeNameCn,
+			          base.bodyTypeNameEn,
+			          base.launchDate,
+			          CTP.ym,
+			          CTP.week,        
+			          msrp.msrp Msrp,
+			          CTP.CITY_ID,
+			          CITY.city_name cityNameCn,
+			          city.cSort,
+			          STP.PRICE prices,
+			          STP.Min_Price price,
+			          STP.Price_Fawvw priceFawvw,
+			          CTP.MIN_PRICE minPrice,
+			          CTP.price minPrices,
+			          CTP.price_fawvw minpriceFawvw
+					FROM fdm_version_city_price  CTP 
+					inner join Base base on base.versionId=CTP.version_id
+					inner join v_User_Purchaser_City CITY on CITY.CITY_ID=CTP.CITY_ID
+					LEFT JOIN fdm_version_state_msrp msrp ON CTP.ym=msrp.ym AND CTP.week=msrp.week AND CTP.version_id=msrp.version_id
+					LEFT JOIN <!-- fdm_version_state_price_test -->fdm_version_state_price STP ON CTP.ym=STP.ym AND CTP.week=STP.week AND CTP.version_id=STP.version_id
+					WHERE 					
+					CTP.Ym Between '$qBeginDate$' And '$qEndDate$'					
+					<!-- 月报 -->
+					<isEqual property="qReportType" compareValue="1">
+						 And ctp.Week In (6, 7)
+					</isEqual>
+					<!-- 周报 -->
+					<isEqual property="qReportType" compareValue="0">
+						And ctp.Week In (1,2,3,4)
+					</isEqual>
+					
+					<isNotNull property="qDateType">
+						And CITY.year = $qDateType$
+					</isNotNull>
+														
+				)tab where 1=1 and <![CDATA[ rownum  < 51 ]]>
+				<isNotEmpty property="qYm" prepend="and">
+					upper(tab.ym) like upper('%$qYm$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qWeek" prepend="and">
+		       		Decode(tab.week,1,'第一周',2,'第二周',3,'第三周',4,'第四周',6,'上半月',7,'下半月') like upper('%$qWeek$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qVersionCode" prepend="and">
+		       		upper(tab.versioncode) like upper('%$qVersionCode$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qSegmentParentName" prepend="and">
+		            upper(tab.segmentParentName) like upper('%$qSegmentParentName$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qSegmentNameCn" prepend="and">
+		       		upper(tab.segmentNameCn) like upper('%$qSegmentNameCn$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qBrandNameCn" prepend="and">
+					upper(tab.brandNameCn) like upper('%$qBrandNameCn$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qManfNameCn" prepend="and">
+		       		upper(tab.manfNameCn) like upper('%$qManfNameCn$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qSubmodelNameCn" prepend="and">
+		       		upper(tab.submodelNameCn) like upper('%$qSubmodelNameCn$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qBodyTypeNameCn" prepend="and">
+		       		upper(tab.bodyTypeNameCn) like upper('%$qBodyTypeNameCn$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qVersionShortNameCn" prepend="and">
+					upper(tab.versionShortNameCn) like upper('%$qVersionShortNameCn$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qEmissionsName" prepend="and">
+		       		upper(tab.emissionsName) like upper('%$qEmissionsName$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qTrnsmsNameCn" prepend="and">
+		       		upper(tab.trnsmsNameCn) like upper('%$qTrnsmsNameCn$%')
+		        </isNotEmpty>
+		       <isNotEmpty property="qLaunchDate" prepend="and">
+		       		upper(tab.launchDate) like upper('%$qLaunchDate$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qMsrp" prepend="and">
+		       		upper(tab.msrp) like upper('%$qMsrp$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qCityNameCn" prepend="and">
+					upper(tab.cityNameCn) like upper('%$qCityNameCn$%')
+		        </isNotEmpty>
+ 		        <isNotEmpty property="qMinPrice" prepend="and">
+		       		upper(tab.minPrice) like upper('%$qMinPrice$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qPrice" prepend="and">
+		       		upper(tab.price) like upper('%$qPrice$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qPrices" prepend="and">
+		       		upper(tab.prices) like upper('%$qPrices$%')
+		        </isNotEmpty>
+				<isNotEmpty property="order">
+					$order$ 
+				</isNotEmpty>
+				<isEmpty property="order">
+					order by tab.ym,tab.week,tab.versioncode Desc,tab.cSort Asc 
+				</isEmpty>						
+</select>
+
+<!-- <select id="getMainDatas" resultClass="com.ways.app.cityPrice.model.FawCityTp">
+	查询一汽大众的所有型号的基础信息表（一汽大众的用户组）
+		
+							With Base As(
+							  Select Version.version_Id versionId,
+							         Version.version_Code versionCode,
+							         Version.version_name_cn versionnamecn,
+                                     Version.version_name_en versionnameen,
+							         to_char(Version.Launch_Date,'YYYY/MM/DD') as launchDate,
+							         Segment.Parent_Grade_Name segmentParentName,
+                             		 Segment.Grade_Name_Cn || '-' || Segment.Sub_Grade_Name segmentNameCn,
+                             		 Segment.Grade_Name_En || '-' || Segment.Sub_Grade_Name SegmentNameEn,
+							         Manf.Manf_Name_Cn ManfNameCn,
+							         Manf.Manf_Name_En ManfNameEn,
+							         Brand.Brand_Name_Cn BrandNameCn,
+							         Brand.Brand_Name_En BrandNameEn,
+							         Emissions.Emissions_Name EmissionsName,
+							         Transmission.Trnsms_Name_Cn TrnsmsNameCn,
+							         Transmission.Trnsms_Name_En TrnsmsNameEn,
+							         Version.Version_Short_Name_Cn VersionShortNameCn,
+							         Version.Version_Short_Name_En VersionShortNameEn，  
+							         Submodel.Submodel_Name_Cn SubmodelNameCn,
+							         Submodel.Submodel_Name_En SubmodelNameEn,
+							         w_Bodytype.Body_Type_Name_Cn BodyTypeNameCn,
+							         w_Bodytype.Body_Type_Name_En BodyTypeNameEn,
+							         Submodel.Submodel_Id submodelId
+							    From Fdm_Car_Version Version
+							  月报
+							  <isEqual property="qReportType" compareValue="1">
+							   Inner Join Fdm_Faw_Report_Version_Month Monthversion On Monthversion.version_Id = Version.version_Id
+							  </isEqual>
+							  周报
+							  <isEqual property="qReportType" compareValue="0">
+							   Inner Join fdm_faw_report_version_week weekVersion On weekVersion.version_Id = version.version_Id
+							  </isEqual>
+							  
+							   Inner Join Fdm_Car_Submodel             Submodel       On Version.submodel_Id = Submodel.submodel_Id  
+							   Inner Join Fdm_Car_Model                Model          On Submodel.Model_Id = Model.Model_Id  
+							   Inner Join Fdm_Car_Manf                 Manf           On Submodel.Manf_Id = Manf.Manf_Id  
+							   Inner Join Fdm_Car_Brand                Brand          On Submodel.Brand_Id = Brand.Brand_Id  
+							   Inner Join V_Faw_Info_Grade             M_Segment      On Model.Model_Id = M_Segment.Model_Id  
+							   Inner Join V_Faw_Grade                  Segment        On M_Segment.Grade_Id = Segment.Grade_Id  
+							   Inner Join Fdm_Car_Emissions            Emissions      On Version.Emissions_Id = Emissions.Emissions_Id  
+							   Inner Join Fdm_Car_Transmission         Transmission   On Version.Trnsms_Id = Transmission.Trnsms_Id  
+							   Inner Join Fdm_Faw_Body_Type            f_Bodytype     On f_Bodytype.submodel_Id = Submodel.submodel_Id  
+							   Inner Join Fdm_Ways_Body_Type           w_Bodytype     On f_Bodytype.Body_Type_Id = w_Bodytype.Body_Type_Id
+							  
+							   Where f_Bodytype.Group_Id = 2 
+							   and version.version_id =3587
+							),
+							
+							 msrpTp as (                   
+                     			SELECT * FROM (
+								SELECT CTP.ym,CTP.week,CTP.version_id,CTP.version_code versioncode,msrp.msrp,STP.PRICE prices,STP.Min_Price price,
+								STP.Price_Fawvw priceFawvw,CTP.CITY_ID
+								<isEqual property="qPriceType" compareValue="0">
+									,CTP.MIN_PRICE CTP
+								</isEqual>
+								<isEqual property="qPriceType" compareValue="1">
+									,CTP.PRICE CTP
+								</isEqual>
+								<isEqual property="qPriceType" compareValue="2">
+									,CTP.PRICE_FAWVW CTP
+								</isEqual>
+								FROM fdm_version_city_price CTP
+								
+								inner join Base b on b.versionId=CTP.version_id 
+								LEFT JOIN fdm_version_state_msrp msrp ON CTP.ym=msrp.ym AND CTP.week=msrp.week AND CTP.version_id=msrp.version_id
+								LEFT JOIN fdm_version_state_price STP ON CTP.ym=STP.ym AND CTP.week=STP.week AND CTP.version_id=STP.version_id
+								WHERE 
+								CTP.Ym Between '$qBeginDate$' And '$qEndDate$'
+								月报
+								<isEqual property="qReportType" compareValue="1">
+										And ctp.Week In (6, 7)
+								</isEqual>
+								周报
+								<isEqual property="qReportType" compareValue="0">
+										And ctp.Week In (1,2,3,4)
+								</isEqual>
+								
+								AND EXISTS (
+								SELECT * FROM FDM_AREA_CITY CITY WHERE CITY.CITY_ID=CTP.CITY_ID
+								)  								
+								<isEqual property="qPriceType" compareValue="0">
+									
+									and NVL(CTP.MIN_PRICE,0)  <![CDATA[ <>0  ]]>
+								</isEqual>
+								<isEqual property="qPriceType" compareValue="1">
+									and NVL(CTP.PRICE,0)  <![CDATA[ <>0  ]]>
+								</isEqual>
+								<isEqual property="qPriceType" compareValue="2">								
+									and NVL(CTP.PRICE_FAWVW,0)  <![CDATA[ <>0  ]]>
+								</isEqual>			
+								
+								)PIVOT(SUM(CTP) FOR CITY_ID IN (
+								$cityList$
+								))                   
+								
+								),
+								s2 as(
+								 Select t.version_id,t.week,t.ym,
+								  listagg(t.promotions,' / ') within group (order by  t.csort) as promotions  
+								        ConnStrClob(t.promotions) as promotions
+								
+								 From
+								 (Select p.version_id,p.week,p.ym,case when p.remarks is null
+                   then
+                null
+                 else 
+                    f.city_name || ':' || p.remarks
+                   end
+                  promotions, f.cSort From fdm_version_city_price  p
+                  				inner join base b on b.versionid=p.version_id
+		                         inner join v_User_Purchaser_City f on p.city_id=f.city_id  and p.year=f.year where 
+		                         p.ym Between '$qBeginDate$' And '$qEndDate$'	and p.CITY_ID IN (
+								$cityList2$
+								)	                          
+								月报
+								<isEqual property="qReportType" compareValue="1">
+										And p.Week In (6, 7)
+								</isEqual>
+								周报
+								<isEqual property="qReportType" compareValue="0">
+										And p.Week In (1,2,3,4)
+								</isEqual>
+								 order by f.cSort
+								) t
+                           			group by version_id,week,ym
+                                )                                                   
+                       
+							
+							Select /*+ rule */ 
+							base.versionCode,
+							base.segmentParentName,
+							base.segmentNameCn,
+							base.segmentNameEn,
+							base.versionnamecn,
+                            base.versionnameen,
+							base.manfNameCn,
+							base.manfNameEn,
+							base.brandNameCn,
+							base.brandNameEn,
+							base.emissionsName,
+							base.trnsmsNameCn,
+							base.trnsmsNameEn,
+							base.versionShortNameCn,
+							base.versionShortNameEn,
+							base.submodelNameCn,
+							base.submodelNameEn,
+							base.bodyTypeNameCn,
+							base.bodyTypeNameEn,
+							base.launchDate,
+							s.promotions,
+							tp.*
+							From msrpTp tp
+							Inner Join Base base On base.versionId = tp.version_id
+							 inner join s2 s
+							 on s.version_id=tp.version_id
+							 and s.ym=tp.ym
+							 and s.week=tp.week
+	
+				            where 1=1
+				            
+				<isNotEmpty property="qYm" prepend="and">
+					upper(tp.ym) like upper('%$qYm$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qWeek" prepend="and">
+		       		Decode(tp.week,1,'第一周',2,'第二周',3,'第三周',4,'第四周',6,'上半月',7,'下半月') like upper('%$qWeek$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qVersionCode" prepend="and">
+		       		upper(base.versionCode) like upper('%$qVersionCode$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qSegmentParentName" prepend="and">
+		            upper(base.segmentParentName) like upper('%$qSegmentParentName$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qSegmentNameCn" prepend="and">
+		       		upper(base.segmentNameCn) like upper('%$qSegmentNameCn$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qBrandNameCn" prepend="and">
+					upper(base.brandNameCn) like upper('%$qBrandNameCn$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qManfNameCn" prepend="and">
+		       		upper(base.manfNameCn) like upper('%$qManfNameCn$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qSubmodelNameCn" prepend="and">
+		       		upper(base.submodelNameCn) like upper('%$qSubmodelNameCn$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qBodyTypeNameCn" prepend="and">
+		       		upper(base.bodyTypeNameCn) like upper('%$qBodyTypeNameCn$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qVersionShortNameCn" prepend="and">
+					upper(base.versionShortNameCn) like upper('%$qVersionShortNameCn$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qEmissionsName" prepend="and">
+		       		upper(base.emissionsName) like upper('%$qEmissionsName$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qTrnsmsNameCn" prepend="and">
+		       		upper(base.trnsmsNameCn) like upper('%$qTrnsmsNameCn$%')
+		        </isNotEmpty>
+		       <isNotEmpty property="qLaunchDate" prepend="and">
+		       		upper(base.launchDate) like upper('%$qLaunchDate$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qMsrp" prepend="and">
+		       		upper(tp.msrp) like upper('%$qMsrp$%')
+		        </isNotEmpty>
+
+
+ 		        <isNotEmpty property="qMinPrice" prepend="and">
+		       		upper(tp.minPrice) like upper('%$qMinPrice$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qPrice" prepend="and">
+		       		upper(tp.price) like upper('%$qPrice$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qPrices" prepend="and">
+		       		upper(tp.prices) like upper('%$qPrices$%')
+		        </isNotEmpty>
+				<isNotEmpty property="order">
+					$order$ 
+				</isNotEmpty>
+				<isEmpty property="order">
+					order by tp.ym,tp.week,base.versionCode Desc
+				</isEmpty>						
+			               
+</select> -->
+
+<select id="getMainDatas" resultClass="com.ways.app.cityPrice.model.FawCityTp">
+	<!-- 查询一汽大众的所有型号的基础信息表（一汽大众的用户组） -->
+		
+							With Base As(
+							  Select Version.version_Id versionId,
+							         Version.version_Code versionCode,
+							         Version.version_name_cn versionnamecn,
+                                     Version.version_name_en versionnameen,
+							         to_char(Version.Launch_Date,'YYYY/MM/DD') as launchDate,
+							         to_char(Version.Halt_Product_Date, 'YYYY/MM/DD') as noProductDate,
+         							 fuel.fuel_type_name_cn fuelTypeName,
+							         Segment.Parent_Grade_Name segmentParentName,
+                             		 Segment.Grade_Name_Cn || '-' || Segment.Sub_Grade_Name segmentNameCn,
+                             		 Segment.Grade_Name_En || '-' || Segment.Sub_Grade_Name SegmentNameEn,
+							         Manf.Manf_Name_Cn ManfNameCn,
+							         Manf.Manf_Name_En ManfNameEn,
+							         Brand.Brand_Name_Cn BrandNameCn,
+							         Brand.Brand_Name_En BrandNameEn,
+							         Emissions.Emissions_Name EmissionsName,
+							         Transmission.Trnsms_Name_Cn TrnsmsNameCn,
+							         Transmission.Trnsms_Name_En TrnsmsNameEn,
+							         Version.Version_Short_Name_Cn VersionShortNameCn,
+							         Version.Version_Short_Name_En VersionShortNameEn，  
+							         Submodel.Submodel_Name_Cn SubmodelNameCn,
+							         Submodel.Submodel_Name_En SubmodelNameEn,
+							         w_Bodytype.Body_Type_Name_Cn BodyTypeNameCn,
+							         w_Bodytype.Body_Type_Name_En BodyTypeNameEn,
+							         Submodel.Submodel_Id submodelId
+							    From Fdm_Car_Version Version
+							  <!-- 月报 -->
+							  <isEqual property="qReportType" compareValue="1">
+							   Inner Join Fdm_Faw_Report_Version_Month Monthversion On Monthversion.version_Id = Version.version_Id
+							  </isEqual>
+							  <!-- 周报 -->
+							  <isEqual property="qReportType" compareValue="0">
+							   Inner Join fdm_faw_report_version_week weekVersion On weekVersion.version_Id = version.version_Id
+							  </isEqual>
+							  
+							   Inner Join Fdm_Car_Submodel             Submodel       On Version.submodel_Id = Submodel.submodel_Id  
+							   Inner Join Fdm_Car_Model                Model          On Submodel.Model_Id = Model.Model_Id  
+							   Inner Join Fdm_Car_Manf                 Manf           On Submodel.Manf_Id = Manf.Manf_Id  
+							   Inner Join Fdm_Car_Brand                Brand          On Submodel.Brand_Id = Brand.Brand_Id  
+							   Inner Join V_Faw_Info_Grade             M_Segment      On Model.Model_Id = M_Segment.Model_Id  
+							   Inner Join V_Faw_Grade                  Segment        On M_Segment.Grade_Id = Segment.Grade_Id  
+							   Inner Join Fdm_Car_Emissions            Emissions      On Version.Emissions_Id = Emissions.Emissions_Id  
+							   Inner Join Fdm_Car_Transmission         Transmission   On Version.Trnsms_Id = Transmission.Trnsms_Id  
+							   Inner Join Fdm_Faw_Body_Type            f_Bodytype     On f_Bodytype.submodel_Id = Submodel.submodel_Id  
+							   Inner Join Fdm_Ways_Body_Type           w_Bodytype     On f_Bodytype.Body_Type_Id = w_Bodytype.Body_Type_Id
+							   inner join fdm_car_fuel_type fuel on fuel.fuel_type_id = version.fuel_type_id
+							   Where f_Bodytype.Group_Id = 2 
+							   <!-- and version.version_id =3587 -->
+							),
+							   s2 as
+							 (select a.version_id,
+							         a.ym ym,
+							         a.week,
+							         b.city_name cityName,
+							         fac.area_id areaid,
+							         <isEqual property="qPriceType" compareValue="0">
+										a.MIN_PRICE TP,
+									</isEqual>
+									<isEqual property="qPriceType" compareValue="1">
+										a.PRICE TP,
+									</isEqual>
+									<isEqual property="qPriceType" compareValue="2">
+										a.PRICE_FAWVW TP,
+									</isEqual>
+							         
+							         m.value /
+							         decode(sum(case
+							                      when 
+							                     <isEqual property="qPriceType" compareValue="0">
+													a.MIN_PRICE
+												</isEqual>
+												<isEqual property="qPriceType" compareValue="1">
+													a.PRICE
+												</isEqual>
+												<isEqual property="qPriceType" compareValue="2">
+													a.PRICE_FAWVW
+												</isEqual>
+							                       is null then
+							                       null
+							                      else
+							                       m.value
+							                    end) over(partition by a.ym, a.version_id, a.week,fac.area_id),
+							                0,
+							                null,
+							                sum(case
+							                      when 
+							                     <isEqual property="qPriceType" compareValue="0">
+													a.MIN_PRICE
+												</isEqual>
+												<isEqual property="qPriceType" compareValue="1">
+													a.PRICE
+												</isEqual>
+												<isEqual property="qPriceType" compareValue="2">
+													a.PRICE_FAWVW
+												</isEqual>
+							                       is null then
+							                       null
+							                      else
+							                       m.value
+							                    end) over(partition by a.ym, a.version_id, a.week,fac.area_id)) mix,
+							         a.remarks promotions
+							    from fdm_version_city_price a
+							   inner join v_user_purchaser_city b
+							      on a.city_id = b.city_id
+							     and a.year = b.year
+							     inner join fdm_area_city fac on fac.city_id = a.city_id
+							    inner join base v
+							      on a.version_id = v.versionId
+							    left join <!-- fdm_model_city_mix_test -->fdm_model_city_mix m
+							      on v.submodelId = m.sub_model_id
+							     and a.year = m.year  + 1 
+							     and m.city_id = a.city_id
+							   where a.ym between replace('$qBeginDate$', '-', '') and
+							         replace('$qEndDate$', '-', '')
+							         <!-- 月报 -->
+								<isEqual property="qReportType" compareValue="1">
+										And a.Week In (6, 7)
+								</isEqual>
+								<!-- 周报 -->
+								<isEqual property="qReportType" compareValue="0">
+										And a.Week In (1,2,3,4)
+								</isEqual>
+							    ),
+							areaTp as
+							(select * from (select s2.version_id,
+							         s2.ym,
+							         s2.areaid,
+							         s2.week,
+							         nvl(round(sum(s2.TP * s2.mix)/10)*10, round(avg(s2.TP)/10)*10) mixAvg
+							    from s2
+							   group by s2.version_id, s2.ym, s2.week,s2.areaid)
+							   PIVOT(SUM(mixavg)
+							   <!-- 此处写死六个大区，如果以后增加新的大区需手动添加 -->
+							     FOR areaid IN (1 as mixavg1,2 as mixavg2,3 as mixavg3, 4 as mixavg4 , 5 as mixavg5 ,6 as mixavg6))
+							   ),
+							 msrpTp as (                   
+                     			SELECT * FROM (
+								SELECT CTP.ym,CTP.week,CTP.version_id,CTP.version_code versioncode,round(msrp.msrp/10)*10 msrp,round(STP.PRICE/10)*10 prices,round(STP.Min_Price/10)*10 price,
+								round(STP.Price_Fawvw/10)*10 priceFawvw,CTP.CITY_ID
+								<isEqual property="qPriceType" compareValue="0">
+									,round(CTP.MIN_PRICE/10)*10 CTP
+								</isEqual>
+								<isEqual property="qPriceType" compareValue="1">
+									,round(CTP.PRICE/10)*10 CTP
+								</isEqual>
+								<isEqual property="qPriceType" compareValue="2">
+									,round(CTP.PRICE_FAWVW/10)*10 CTP
+								</isEqual>
+								FROM fdm_version_city_price CTP
+								inner join Base b on b.versionId=CTP.version_id 
+								LEFT JOIN fdm_version_state_msrp msrp ON CTP.ym=msrp.ym AND CTP.week=msrp.week AND CTP.version_id=msrp.version_id
+								LEFT JOIN <!-- fdm_version_state_price_test -->fdm_version_state_price STP ON CTP.ym=STP.ym AND CTP.week=STP.week AND CTP.version_id=STP.version_id
+								WHERE 
+								CTP.Ym Between '$qBeginDate$' And '$qEndDate$'
+								<!-- 月报 -->
+								<isEqual property="qReportType" compareValue="1">
+										And ctp.Week In (6, 7)
+								</isEqual>
+								<!-- 周报 -->
+								<isEqual property="qReportType" compareValue="0">
+										And ctp.Week In (1,2,3,4)
+								</isEqual>
+								
+								AND EXISTS (
+								SELECT * FROM FDM_AREA_CITY CITY WHERE CITY.CITY_ID=CTP.CITY_ID
+								)  								
+								<!-- <isEqual property="qPriceType" compareValue="0">
+									
+									and NVL(CTP.MIN_PRICE,0)  <![CDATA[ <>0  ]]>
+								</isEqual>
+								<isEqual property="qPriceType" compareValue="1">
+									and NVL(CTP.PRICE,0)  <![CDATA[ <>0  ]]>
+								</isEqual>
+								<isEqual property="qPriceType" compareValue="2">								
+									and NVL(CTP.PRICE_FAWVW,0)  <![CDATA[ <>0  ]]>
+								</isEqual> -->			
+								
+								)PIVOT(SUM(CTP) FOR CITY_ID IN (
+								$cityList$
+								))                   
+								
+								)
+							
+							Select /*+ rule */ 
+							tp.version_id ||'-'||tp.week||'-'||tp.ym key, 
+							base.versionCode,
+							base.segmentParentName,
+							base.segmentNameCn,
+							base.segmentNameEn,
+							base.versionnamecn,
+                            base.versionnameen,
+							base.manfNameCn,
+							base.manfNameEn,
+							base.brandNameCn,
+							base.brandNameEn,
+							base.emissionsName,
+							base.trnsmsNameCn,
+							base.trnsmsNameEn,
+							base.versionShortNameCn,
+							base.versionShortNameEn,
+							base.submodelNameCn,
+							base.submodelNameEn,
+							base.bodyTypeNameCn,
+							base.bodyTypeNameEn,
+							base.launchDate,
+							base.noProductDate,
+ 							base.fuelTypename,
+							tp.*,
+							<!-- 后面六个大区 -->
+							 atp.mixavg1,
+							  atp.mixavg2,
+							   atp.mixavg3,
+							    atp.mixavg4,
+							     atp.mixavg5,
+							      atp.mixavg6
+							From msrpTp tp
+							Inner Join Base base On base.versionId = tp.version_id
+							 left join areaTp atp
+					             on tp.ym = atp.ym
+					             and tp.week = atp.week
+					             and tp.version_id = atp.version_id
+				            where 1=1
+				            
+				<isNotEmpty property="qYm" prepend="and">
+					upper(tp.ym) like upper('%$qYm$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qWeek" prepend="and">
+		       		Decode(tp.week,1,'第一周',2,'第二周',3,'第三周',4,'第四周',6,'上半月',7,'下半月') like upper('%$qWeek$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qVersionCode" prepend="and">
+		       		upper(base.versionCode) like upper('%$qVersionCode$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qSegmentParentName" prepend="and">
+		            upper(base.segmentParentName) like upper('%$qSegmentParentName$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qSegmentNameCn" prepend="and">
+		       		upper(base.segmentNameCn) like upper('%$qSegmentNameCn$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qBrandNameCn" prepend="and">
+					upper(base.brandNameCn) like upper('%$qBrandNameCn$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qManfNameCn" prepend="and">
+		       		upper(base.manfNameCn) like upper('%$qManfNameCn$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qSubmodelNameCn" prepend="and">
+		       		upper(base.submodelNameCn) like upper('%$qSubmodelNameCn$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qBodyTypeNameCn" prepend="and">
+		       		upper(base.bodyTypeNameCn) like upper('%$qBodyTypeNameCn$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qVersionShortNameCn" prepend="and">
+					upper(base.versionShortNameCn) like upper('%$qVersionShortNameCn$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qEmissionsName" prepend="and">
+		       		upper(base.emissionsName) like upper('%$qEmissionsName$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qTrnsmsNameCn" prepend="and">
+		       		upper(base.trnsmsNameCn) like upper('%$qTrnsmsNameCn$%')
+		        </isNotEmpty>
+		       <isNotEmpty property="qLaunchDate" prepend="and">
+		       		upper(base.launchDate) like upper('%$qLaunchDate$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qMsrp" prepend="and">
+		       		upper(tp.msrp) like upper('%$qMsrp$%')
+		        </isNotEmpty>
+
+
+ 		        <isNotEmpty property="qMinPrice" prepend="and">
+		       		upper(tp.minPrice) like upper('%$qMinPrice$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qPrice" prepend="and">
+		       		upper(tp.price) like upper('%$qPrice$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qPrices" prepend="and">
+		       		upper(tp.prices) like upper('%$qPrices$%')
+		        </isNotEmpty>
+				<isNotEmpty property="order">
+					$order$ 
+				</isNotEmpty>
+				<isEmpty property="order">
+					order by tp.ym,tp.week,base.versionCode Desc
+				</isEmpty>						
+			               
+</select>
+
+<select id="getPromotionsData" resultClass="com.ways.app.cityPrice.model.FawCityTpPromotions">
+	With Base As(
+							  Select Version.version_Id versionId,
+							         Version.version_Code versionCode,
+							         Version.version_name_cn versionnamecn,
+                                     Version.version_name_en versionnameen,
+							         to_char(Version.Launch_Date,'YYYY/MM/DD') as launchDate,
+							         Segment.Parent_Grade_Name segmentParentName,
+                             		 Segment.Grade_Name_Cn || '-' || Segment.Sub_Grade_Name segmentNameCn,
+                             		 Segment.Grade_Name_En || '-' || Segment.Sub_Grade_Name SegmentNameEn,
+							         Manf.Manf_Name_Cn ManfNameCn,
+							         Manf.Manf_Name_En ManfNameEn,
+							         Brand.Brand_Name_Cn BrandNameCn,
+							         Brand.Brand_Name_En BrandNameEn,
+							         Emissions.Emissions_Name EmissionsName,
+							         Transmission.Trnsms_Name_Cn TrnsmsNameCn,
+							         Transmission.Trnsms_Name_En TrnsmsNameEn,
+							         Version.Version_Short_Name_Cn VersionShortNameCn,
+							         Version.Version_Short_Name_En VersionShortNameEn，  
+							         Submodel.Submodel_Name_Cn SubmodelNameCn,
+							         Submodel.Submodel_Name_En SubmodelNameEn,
+							         w_Bodytype.Body_Type_Name_Cn BodyTypeNameCn,
+							         w_Bodytype.Body_Type_Name_En BodyTypeNameEn,
+							         Submodel.Submodel_Id submodelId
+							    From Fdm_Car_Version Version
+							  <!-- 月报 -->
+							  <isEqual property="qReportType" compareValue="1">
+							   Inner Join Fdm_Faw_Report_Version_Month Monthversion On Monthversion.version_Id = Version.version_Id
+							  </isEqual>
+							  <!-- 周报 -->
+							  <isEqual property="qReportType" compareValue="0">
+							   Inner Join fdm_faw_report_version_week weekVersion On weekVersion.version_Id = version.version_Id
+							  </isEqual>
+							  
+							   Inner Join Fdm_Car_Submodel             Submodel       On Version.submodel_Id = Submodel.submodel_Id  
+							   Inner Join Fdm_Car_Model                Model          On Submodel.Model_Id = Model.Model_Id  
+							   Inner Join Fdm_Car_Manf                 Manf           On Submodel.Manf_Id = Manf.Manf_Id  
+							   Inner Join Fdm_Car_Brand                Brand          On Submodel.Brand_Id = Brand.Brand_Id  
+							   Inner Join V_Faw_Info_Grade             M_Segment      On Model.Model_Id = M_Segment.Model_Id  
+							   Inner Join V_Faw_Grade                  Segment        On M_Segment.Grade_Id = Segment.Grade_Id  
+							   Inner Join Fdm_Car_Emissions            Emissions      On Version.Emissions_Id = Emissions.Emissions_Id  
+							   Inner Join Fdm_Car_Transmission         Transmission   On Version.Trnsms_Id = Transmission.Trnsms_Id  
+							   Inner Join Fdm_Faw_Body_Type            f_Bodytype     On f_Bodytype.submodel_Id = Submodel.submodel_Id  
+							   Inner Join Fdm_Ways_Body_Type           w_Bodytype     On f_Bodytype.Body_Type_Id = w_Bodytype.Body_Type_Id
+							  
+							   Where f_Bodytype.Group_Id = 2 
+							   <!-- and version.version_id =3587 -->
+							)
+	Select p.version_id || '-'||p.week||'-'||p.ym key,
+	  p.version_id versionid,p.week,p.ym,
+                 case
+                   when p.remarks is null then
+                    null
+                   else
+                    f.city_name || ':' || p.remarks
+                 end promotions,
+                 f.cSort
+            From fdm_version_city_price p
+                  				inner join base b on b.versionid=p.version_id
+		                         inner join v_User_Purchaser_City f on p.city_id=f.city_id  and p.year=f.year where 
+		                         p.ym Between '$qBeginDate$' And '$qEndDate$'	and p.CITY_ID IN (
+								$cityList2$
+								)	                          
+								<!-- 月报 -->
+								<isEqual property="qReportType" compareValue="1">
+										And p.Week In (6, 7)
+								</isEqual>
+								<!-- 周报 -->
+								<isEqual property="qReportType" compareValue="0">
+										And p.Week In (1,2,3,4)
+								</isEqual>
+								order by p.version_id || '-'||p.week||'-'||p.ym,p.ym desc,p.week , f.cSort
+								                  
+                       
+</select>
+
+<!-- 获取大区名称 -->
+<select id="getCityArea" resultClass="com.ways.app.cityPrice.model.CityArea">
+		select  fa.area_id areaid,fa.area_name_cn areaName  from fdm_area fa inner join fdm_area_city fac on fa.area_id = fac.area_id and 
+			fac.city_id in (
+			              Select distinct city_id
+			  From v_User_Purchaser_City v
+			       Where v.Year = $cityYear$
+			           
+			) group by  fa.area_id,fa.area_name_cn
+			order by fa.area_id
+</select>
+
+</sqlMap>

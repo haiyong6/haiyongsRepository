@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="basePeriodTP">
+
+
+<select id="initDate" resultClass="java.util.HashMap">
+Select
+max(P1.Year ) ENDDATE
+,min(P1.Year) BEGINDATE
+  From fdm_car_BasePeriodTP p1
+</select>
+
+<insert id="addBasePeriodTPByImport">
+   <![CDATA[
+
+    insert into fdm_car_BasePeriodTP values('$versionCode$',$year$,'$manf$','$model$','$modelName$',$MSRP$,$TP$,sysdate)   
+       
+   ]]>
+</insert>
+
+<insert id="addCityBasePeriodTPByImport">
+   <![CDATA[
+
+    insert into fdm_car_city_BasePeriodTP values('$versionCode$',$year$,'$manf$','$model$','$modelName$','$cityId$','$cityName$',$MSRP$,$TP$,sysdate)   
+       
+   ]]>
+</insert>
+
+<insert id="addBasePeriodTPError">
+   <![CDATA[
+
+    insert into fdm_car_BasePeriodTP_error values('$versionCode$','$year$','$manf$','$model$','$modelName$','$MSRP$','$TP$',sysdate)   
+       
+   ]]>
+</insert>
+
+<insert id="addCityBasePeriodTPError">
+   <![CDATA[
+
+    insert into fdm_car_CityBasePeriodTP_error values('$versionCode$','$year$','$manf$','$model$','$modelName$','$cityId$','cityName','$MSRP$','$TP$',sysdate)   
+       
+   ]]>
+</insert>
+
+<delete id="delBasePeriodTPByImport">
+    <![CDATA[
+    
+	delete from fdm_car_BasePeriodTP tp where tp.versionCode='$versionCode$' and tp.year=$year$
+
+    ]]>
+</delete>
+
+<delete id="delCityBasePeriodTPByImport">
+    <![CDATA[
+    
+	delete from fdm_car_city_BasePeriodTP tp where tp.versionCode='$versionCode$' and tp.year=$year$ and tp.cityId = $cityId$
+
+    ]]>
+</delete>
+
+<select id="selectCityBasePeriodTPByImport" resultClass="java.util.HashMap">
+	select to_char(count(1)) count from fdm_car_city_BasePeriodTP tp where tp.versionCode='$versionCode$' and tp.year=$year$ and tp.cityId = $cityId$ 
+</select>
+
+<delete id="delBasePeriodTPError">
+    <![CDATA[
+    
+	delete from fdm_car_BasePeriodTP_error tp 
+
+    ]]>
+</delete>
+
+<delete id="delCityBasePeriodTPError">
+    <![CDATA[
+    
+	delete from fdm_car_CityBasePeriodTP_error tp 
+
+    ]]>
+</delete>
+<select id="getBasePeriodTPErrorData" resultClass="com.ways.app.basePeriodTPConfig.model.BasePeriodTP">
+			select versionCode,
+					year,
+					manf,
+					model,
+					modelName,
+					null cityId,
+					null cityName,
+					MSRP,
+					TP ,
+					0 as totalCount
+					from fdm_car_BasePeriodTP_error
+  
+</select>
+
+<select id="getCityBasePeriodTPErrorData" resultClass="com.ways.app.basePeriodTPConfig.model.BasePeriodTP">
+			select versionCode,
+					year,
+					manf,
+					model,
+					modelName,
+					 cityId,
+					 cityName,
+					MSRP,
+					TP ,
+					0 as totalCount
+					from fdm_car_CityBasePeriodTP_error
+  
+</select>
+
+<select id="getBasePeriodTPData" resultClass="com.ways.app.basePeriodTPConfig.model.BasePeriodTP">
+
+    	select t.* from (
+		select a.*, rownum as rowIndex from (
+				select tab.*, count(1) over() totalCount from (
+					select versionCode,
+					year,
+					manf,
+					model,
+					modelName,
+					null cityid,
+					null cityname,
+					MSRP,
+					TP 
+					from fdm_car_BasePeriodTP tp 
+					where  tp.year between '$qBeginDate$' and '$qEndDate$'
+					)
+						tab where 1=1
+				<isNotEmpty property="qVersionCode" prepend="and">
+					upper(tab.versionCode) like upper('%$qVersionCode$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qYear" prepend="and">
+					upper(tab.year) like upper('%$qYear$%')
+		        </isNotEmpty>
+				<isNotEmpty property="qManf" prepend="and">
+					upper(tab.manf) like upper('%$qManf$%')
+		        </isNotEmpty>		        
+				<isNotEmpty property="qModel" prepend="and">
+					upper(tab.model) like upper('%$qModel$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qModelName" prepend="and">
+					upper(tab.modelName) like upper('%$qModelName$%')
+		        </isNotEmpty>
+				<isNotEmpty property="qTP" prepend="and">
+					upper(tab.TP) like upper('%$qTP$%')
+		        </isNotEmpty>		        
+				<isNotEmpty property="qMSRP" prepend="and">
+					upper(tab.MSRP) like upper('%$qMSRP$%')
+		        </isNotEmpty>			        
+				) a
+	 	) t
+		where 1=1
+	
+		<isNotEmpty property="start" prepend="and">
+			t.rowIndex > $start$  and t.rowIndex     <![CDATA[ <=     ]]> $limit$
+		</isNotEmpty>		
+</select>
+
+
+<select id="getCityBasePeriodTPData" resultClass="com.ways.app.basePeriodTPConfig.model.BasePeriodTP">
+
+    	select t.* from (
+		select a.*, rownum as rowIndex from (
+				select tab.*, count(1) over() totalCount from (
+					select versionCode,
+					year,
+					manf,
+					model,
+					modelName,
+					 cityid,
+					 cityname,
+					MSRP,
+					TP 
+					from fdm_car_city_BasePeriodTP tp 
+					where  tp.year between '$qBeginDate$' and '$qEndDate$'
+					)
+						tab where 1=1
+				<isNotEmpty property="qVersionCode" prepend="and">
+					upper(tab.versionCode) like upper('%$qVersionCode$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qYear" prepend="and">
+					upper(tab.year) like upper('%$qYear$%')
+		        </isNotEmpty>
+				<isNotEmpty property="qManf" prepend="and">
+					upper(tab.manf) like upper('%$qManf$%')
+		        </isNotEmpty>		        
+				<isNotEmpty property="qModel" prepend="and">
+					upper(tab.model) like upper('%$qModel$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qModelName" prepend="and">
+					upper(tab.modelName) like upper('%$qModelName$%')
+		        </isNotEmpty>
+				<isNotEmpty property="qTP" prepend="and">
+					upper(tab.TP) like upper('%$qTP$%')
+		        </isNotEmpty>		        
+				<isNotEmpty property="qMSRP" prepend="and">
+					upper(tab.MSRP) like upper('%$qMSRP$%')
+		        </isNotEmpty>			        
+				) a
+	 	) t
+		where 1=1
+	
+		<isNotEmpty property="start" prepend="and">
+			t.rowIndex > $start$  and t.rowIndex     <![CDATA[ <=     ]]> $limit$
+		</isNotEmpty>		
+</select>
+
+</sqlMap>

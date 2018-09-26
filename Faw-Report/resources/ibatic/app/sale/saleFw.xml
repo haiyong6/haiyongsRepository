@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-2.dtd" >
+<sqlMap namespace="saleFw">
+
+<!-- 初始化日期 -->
+<select id="initDate" resultClass="java.util.HashMap">
+Select
+max(P1.Year ||'-'|| Lpad(P1.Month, 2, 0)) ENDDATE
+,min(P1.Year ||'-'|| Lpad(P1.Month, 2, 0)) BEGINDATE
+  From Faw_vw.Fdm_Version_Sales_Direct p1
+</select>
+
+<!-- 获取销量数据 -->
+<select id="findSaleInfo" resultClass="com.ways.app.sale.model.SaleDetail">
+	select t.* from (
+		select a.*, rownum as rowIndex from (
+				select tab.*, count(1) over() totalCount from (
+							Select 
+							to_char(version.launch_date,'YYYYMM') as launchDate,
+							version.version_code as versionCode,
+							sale.year as year,
+							sale.month as month,
+							version.version_name_cn as versionname,
+							round(sale.version_sale) as sale,
+							 Manf.Manf_Name_Cn as manfName,
+							 Submodel.Submodel_Name_Cn as modelName,
+							Brand.Brand_Name_Cn as brandName
+							,sale.remark as remark
+							,case sale.is_custom
+                            when 1 then '是'
+                            when 0 then '否' end
+							as isCustom
+							,msrp.msrp as MSRP
+							From 
+							<isEqual property="qSaleType" compareValue="1">
+							Fdm_Version_Sales_Direct sale
+							</isEqual>
+							<isEqual property="qSaleType" compareValue="0">
+							Fdm_Version_Sales sale
+							</isEqual>
+							inner join Fdm_Car_Version version
+							on version.version_id=sale.version_id
+							 Inner Join Fdm_Car_Submodel Submodel
+							 On sale.sub_model_Id = Submodel.submodel_Id
+							Inner Join Fdm_Car_Brand Brand
+							 On sale.Brand_Id = Brand.Brand_Id
+							 Inner Join Fdm_Car_Manf Manf
+							 On sale.Manf_Id = Manf.Manf_Id
+							 left join fdm_version_state_msrp msrp
+							 on sale.version_id=msrp.version_id
+							 and sale.year=msrp.year
+							 and sale.month=msrp.month
+							 and msrp.week=7
+							 where 
+							  sale.Year || Lpad(sale.Month, 2, 0) Between '$qBeginDate$' And '$qEndDate$'
+ 
+						)
+						tab where 1=1
+				<isNotEmpty property="qlaunchDate" prepend="and">
+					upper(tab.launchDate) like upper('%$qlaunchDate$%')
+		        </isNotEmpty>
+
+		        <isNotEmpty property="qversionCode" prepend="and">
+		       		upper(tab.versionCode) like upper('%$qversionCode$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qyear" prepend="and">
+		       		upper(tab.year) like upper('%$qyear$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qmonth" prepend="and">
+					upper(tab.month) like upper('%$qmonth$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qversionname" prepend="and">
+		       		upper(tab.versionname) like upper('%$qversionname$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qsale" prepend="and">
+		       		upper(tab.sale) like upper('%$qsale$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qmanfName" prepend="and">
+		       		upper(tab.manfName) like upper('%$qmanfName$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qmodelName" prepend="and">
+		       		upper(tab.modelName) like upper('%$qmodelName$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qbrandName" prepend="and">
+		       		upper(tab.brandName) like upper('%$qbrandName$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qremark" prepend="and">
+					upper(tab.remark) like upper('%$qremark$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qisCustom" prepend="and">
+		       		upper(tab.isCustom) like upper('%$qisCustom$%')
+		        </isNotEmpty>
+		        <isNotEmpty property="qMSRP" prepend="and">
+		       		upper(tab.MSRP) like upper('%$qMSRP$%')
+		        </isNotEmpty>		       
+				<isNotEmpty property="order">
+					$order$
+				</isNotEmpty>
+				<isEmpty property="order">
+					 order by versionCode,year,month
+				</isEmpty>
+			) a
+	 ) t
+	where 1=1
+		<isNotEmpty property="start" prepend="and">
+			t.rowIndex > $start$  and t.rowIndex <![CDATA[ <=  ]]> $limit$
+		</isNotEmpty>
+</select>
+</sqlMap>
