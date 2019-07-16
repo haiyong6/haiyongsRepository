@@ -1,0 +1,1 @@
+Mybatis整合spring  - 有Mapper实现类
