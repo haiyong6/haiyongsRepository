@@ -1,0 +1,4 @@
+com\ways\app\common\service\CommonService.class
+com\ways\app\common\web\controller\CommonController.class
+com\ways\app\common\dao\CommonMapper.class
+com\ways\app\common\service\impl\CommonServiceImpl.class
