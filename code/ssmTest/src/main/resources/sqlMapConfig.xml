@@ -12,15 +12,15 @@
             <!-- 数据库连接池 -->
             <dataSource type="POOLED">
                 <property name="driver" value="oracle.jdbc.OracleDriver"/>
-                <property name="url" value="jdbc:oracle:thin:@172.16.1.37:1521:DBFM"/>
-                <property name="username" value="FAWVW"/>
-                <property name="password" value="FAWvw419"/>
+                <property name="url" value="jdbc:oracle:thin:@127.0.0.1:1521:XE"/>
+                <property name="username" value="zhaohy"/>
+                <property name="password" value="oracle"/>
             </dataSource>
         </environment>
     </environments> 
     
     <!-- 查找sql映射文件 -->
     <mappers>
-        <mapper resource="com/ways/app/common/sqlmap/oracle/commonMapper.xml"/>
+        <mapper resource="com/ways/app/sqlmap/oracle/userMapper.xml"/>
     </mappers>
 </configuration>
