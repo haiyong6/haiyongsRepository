@@ -4,7 +4,7 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ways</groupId>
-    <artifactId>ssmTest02</artifactId>
+    <artifactId>ssmTest01</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>war</packaging>
     <dependencies>
@@ -79,11 +79,6 @@
         	<artifactId>spring-aop</artifactId>
         	<version>5.1.8.RELEASE</version>
         </dependency>
-        <dependency>
-		    <groupId>org.springframework</groupId>
-		    <artifactId>spring-asm</artifactId>
-		    <version>3.1.4.RELEASE</version>
-		</dependency>
 		<dependency>
 		    <groupId>org.springframework</groupId>
 		    <artifactId>spring-context</artifactId>
@@ -114,7 +109,7 @@
                     <target>1.7</target>
                      <compilerArguments>
                       <extdirs>src\main\webapp\WEB-INF\lib</extdirs>
-                      <bootclasspath>C:\Program Files\Java\jdk1.8.0_172\jre\lib\rt.jar</bootclasspath>
+                      <bootclasspath>/home/zhaohy/software/jdk1.8.0_181/jre/lib/rt.jar</bootclasspath>
                     </compilerArguments> 
                 </configuration>
             </plugin>

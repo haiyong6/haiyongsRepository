@@ -21,6 +21,6 @@
     
     <!-- 查找sql映射文件 -->
     <mappers>
-        <mapper resource="com/ways/app/common/sqlmap/oracle/commonMapper.xml"/>
+        <mapper resource="com/ways/app/sqlmap/oracle/userMapper.xml"/>
     </mappers>
 </configuration>

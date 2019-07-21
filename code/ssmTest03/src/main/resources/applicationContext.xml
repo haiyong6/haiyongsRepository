@@ -50,25 +50,24 @@
        </bean>
        
        <!-- 创建CommonMapperImpl对象，注入SqlSessionFactory -->
-        <!-- <bean id="commonMapper" class="com.ways.app.common.dao.impl.CommonMapperImpl">
+        <!-- <bean id="userMapper" class="com.ways.app.dao.impl.UserMapperImpl">
             注入sqlSessionFactory
             <property name="sqlSessionFactory" ref="sqlSessionFactory"/>
         </bean> -->
-        
         <!-- 配置Mapper接口 -->
-        <!-- <bean id="commonMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <!-- <bean id="userMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
             注入mapper接口
-            <property name="mapperInterface" value="com.ways.app.common.dao.CommonMapper"/>
+            <property name="mapperInterface" value="com.ways.app.dao.UserMapper"/>
             注入SqlSessionFactory
             <property name="sqlSessionFactory" ref="sqlSessionFactory"/>
         </bean> -->
         
         <!-- Mappper接口的扫描 
-                            注意：如果使用Mapper接口包扫描，那么每个Mapper接口在Spring容器中的id名称为类名：例如：CommonMapper -> commonMapper(首字母小写)
+            注意：如果使用Mapper接口包扫描，那么每个Mapper接口在Spring容器中的id名称为类名：例如：UserMapper -> userMapper(首字母小写)
         -->
-        <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
-            <!-- 配置mapper接口所在的包路径  会扫描此包以及其子包-->
-            <property name="basePackage" value="com.ways.app.common.dao"/>
-        </bean>
+	     <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+	           <!-- 配置mapper接口所在的包路径  会扫描此包以及其子包-->
+	           <property name="basePackage" value="com.ways.app.dao"/>
+	     </bean>
         
 </beans>

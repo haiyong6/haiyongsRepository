@@ -1,1 +1,1 @@
-Mybatis整合spring  - 没有Mapper实现类
+Mybatis整合spring – mapper接口
