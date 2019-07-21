@@ -50,15 +50,14 @@
        </bean>
        
        <!-- 创建CommonMapperImpl对象，注入SqlSessionFactory -->
-        <!-- <bean id="commonMapper" class="com.ways.app.common.dao.impl.CommonMapperImpl">
+        <!-- <bean id="userMapper" class="com.ways.app.dao.impl.UserMapperImpl">
             注入sqlSessionFactory
             <property name="sqlSessionFactory" ref="sqlSessionFactory"/>
         </bean> -->
-        
         <!-- 配置Mapper接口 -->
-        <bean id="commonMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <bean id="userMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
             <!-- 注入mapper接口 -->
-            <property name="mapperInterface" value="com.ways.app.common.dao.CommonMapper"/>
+            <property name="mapperInterface" value="com.ways.app.dao.UserMapper"/>
             <!-- 注入SqlSessionFactory -->
             <property name="sqlSessionFactory" ref="sqlSessionFactory"/>
         </bean>
