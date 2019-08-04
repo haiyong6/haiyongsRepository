@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+
+    <appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern"
+                value="%p [%t] %c{1}.%M(%L) | %m%n"/>
+        </layout>
+    </appender>
+    
+    <logger name="net.sf.ehcache">
+        <level value="ERROR"/>
+    </logger>
+
+    <!-- Suppress success logging from InteractiveAuthenticationSuccessEvent -->
+    <logger name="org.springframework.security">
+        <level value="ERROR"/>
+    </logger>
+
+    <logger name="org.apache">
+        <level value="WARN"/>
+    </logger>
+
+    <logger name="org.apache.velocity">
+        <level value="FATAL"/>
+    </logger>
+
+    <!-- Suppress invalid warning messages from JSF -->
+    <logger name="org.apache.myfaces">
+        <level value="ERROR"/>
+    </logger>
+
+    <!-- Suppress warnings from Struts -->
+    <logger name="org.apache.struts2.util.TextProviderHelper">
+      <level value="ERROR"/>
+    </logger>
+
+    <logger name="com.opensymphony.xwork2.util.OgnlUtil">
+       <level value="ERROR"/>
+    </logger>
+
+    <logger name="com.opensymphony.xwork2.ognl.OgnlValueStack">
+       <level value="ERROR"/>
+    </logger>
+
+    <logger name="org.dbunit">
+        <level value="WARN"/>
+    </logger>
+
+    <logger name="org.hibernate">
+        <level value="ERROR"/>
+    </logger>
+  
+    <logger name="org.hibernate.SQL">
+        <level value="DEBUG"/>
+    </logger>
+
+    <logger name="org.springframework">
+        <level value="WARN"/>
+    </logger>
+   
+    <logger name="com.zhaohy">
+        <level value="DEBUG"/>
+    </logger>
+
+    <logger name="com.zhaohy.tool">
+        <level value="INFO"/>
+    </logger>
+
+   <!--  <root>
+        <level value="ERROR"/>
+        <appender-ref ref="CONSOLE"/>
+    </root> -->
+
+	<root>
+        <level value="WARN"/>
+        <appender-ref ref="CONSOLE"/>
+    </root>
+    <appender name="IBatis" class="org.apache.log4j.ConsoleAppender"> 
+	   <layout class="org.apache.log4j.PatternLayout"> 
+	      <param name="ConversionPattern" value="%-4r [%t] %-5p %c %x - %m%n" /> 
+	   </layout> 
+	   <filter class="org.apache.log4j.varia.LevelRangeFilter"> 
+	      <param name="LevelMin" value="DEBUG" /> 
+	      <param name="LevelMax" value="DEBUG" /> 
+	   </filter>
+	</appender> 
+	
+	<logger name="com.ibatis" additivity="true"> 
+	   <level value="DEBUG" /> 
+	</logger> 
+	<logger name="java.sql.Connection" additivity="true"> 
+	   <level value="DEBUG" /> 
+	</logger> 
+	<logger name="java.sql.Statement" additivity="true"> 
+	   <level value="WARN" /> 
+	</logger> 
+</log4j:configuration>
