@@ -6,4 +6,8 @@
         values (decode((select max(user_id) from da_user),null,1,(select max(user_id) + 1 from da_user)),
         		'${userName}',${sex},'${job}','${tel}','${email}','${hobby}')
 	</insert>
+	
+	<select id="getUserListByName" resultType="java.util.HashMap">
+	select * from da_user u where u.user_name = '${userName}'
+	</select>
 </mapper>

@@ -2,11 +2,14 @@ package com.ways.app.web.controller;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.jasig.cas.client.authentication.AttributePrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -42,4 +45,24 @@ public class UserController {
 	}
   }
 	 
+  /**
+   * 进入index主页
+   * @param request
+   * @param response
+   * @return
+   */
+  @RequestMapping("/user/goIndex")
+  public String goIndex(HttpServletRequest request, HttpServletResponse response) {
+	  AttributePrincipal principal = (AttributePrincipal) request.getUserPrincipal();
+	  Map<String, Object> paramsMap = new HashMap<String, Object>();
+	  paramsMap.put("userName", principal.getName());
+	  List<Map<String, Object>> userList = userService.getUserListByName(request, paramsMap);
+	  request.getSession().setAttribute("userList", userList);
+	  for (int i = 0; i < userList.size(); i++) {
+		Map<String, Object> userMap = userList.get(i);
+		System.out.println("userId===" + userMap.get("USER_ID"));
+		System.out.println("userName===" + userMap.get("USER_NAME"));
+	}
+	  return "index";
+}
 }

@@ -11,7 +11,6 @@
 		window.location="/ssmTest05/user/logout.do";
 	}
 </script>
-<% response.sendRedirect(request.getContextPath() + "/user/goIndex.do");  //重定向 %>
 <body>
 <h2>Hello SpringMVC!</h2><br/>
 <button id="button" onclick="backToLogin()">退出</button>
