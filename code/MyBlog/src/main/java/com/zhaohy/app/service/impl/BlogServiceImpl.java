@@ -61,7 +61,7 @@ public class BlogServiceImpl implements BlogService {
                 if(blogList.size() > 0) {
                 	Map<String, Object> blogMap = blogList.get(0);
                 	paramsMap.put("existType", "1");
-                	paramsMap.put("blogUrlName", blogMap.get("BLOGURLNAME"));
+                	paramsMap.put("blogUrlName", blogMap.get("URLNAME"));
                 } else {
                 	paramsMap.put("existType", "0");
                 }
@@ -129,6 +129,14 @@ public class BlogServiceImpl implements BlogService {
 	public List<Map<String, Object>> getBlogList(HttpServletRequest request, Map<String, Object> paramsMap) {
 		
 		return blogMapper.getBlogList(paramsMap);
+	}
+
+	/**
+	 * 根据url获取文章详情
+	 */
+	@Override
+	public List<Map<String, Object>> getBlogInfoByUrl(HttpServletRequest request, Map<String, Object> paramsMap) {
+		return blogMapper.getBlogInfoByUrl(paramsMap);
 	}
 	
 }

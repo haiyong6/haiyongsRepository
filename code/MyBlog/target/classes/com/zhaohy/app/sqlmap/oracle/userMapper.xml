@@ -4,6 +4,6 @@
 	<insert id="saveUser" parameterType="java.util.HashMap">
         insert into da_user 
         values (decode((select max(user_id) from da_user),null,1,(select max(user_id) + 1 from da_user)),
-        		'${userName}',${sex},'${job}','${tel}','${email}','${hobby}')
+        		'${userName}','${passWord}','${email}',${userTypeId})
 	</insert>
 </mapper>

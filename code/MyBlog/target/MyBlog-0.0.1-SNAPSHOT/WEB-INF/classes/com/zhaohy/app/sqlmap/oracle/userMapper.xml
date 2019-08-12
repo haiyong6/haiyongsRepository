@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zhaohy.app.dao.UserMapper">
+	<insert id="saveUser" parameterType="java.util.HashMap">
+        insert into da_user 
+        values (decode((select max(user_id) from da_user),null,1,(select max(user_id) + 1 from da_user)),
+        		'${userName}','${passWord}','${email}',${userTypeId})
+	</insert>
+</mapper>

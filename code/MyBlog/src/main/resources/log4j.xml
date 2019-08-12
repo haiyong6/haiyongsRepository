@@ -61,7 +61,7 @@
         <level value="WARN"/>
     </logger>
    
-    <logger name="com.zhaohy">
+    <logger name="com.zhaohy.app">
         <level value="DEBUG"/>
     </logger>
 

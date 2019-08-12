@@ -32,4 +32,11 @@ public interface BlogMapper {
 	 */
 	List<Map<String, Object>> getBlogListByName(Map<String, Object> paramsMap);
 
+	/**
+	 * 根据url获取文章详情
+	 * @param paramsMap
+	 * @return
+	 */
+	List<Map<String, Object>> getBlogInfoByUrl(Map<String, Object> paramsMap);
+
 }

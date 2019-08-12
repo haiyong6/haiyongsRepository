@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zhaohy.app.dao.BlogMapper">
+	<update id="uploadBlog" parameterType="java.util.HashMap">
+		<if test="existType == 0">
+		insert into dm_blog 
+        values(nvl((select max(blog_id) + 1 from dm_blog),1),'${blogName}','${blogAuthorId}','${blogCollectionId}'
+        ,to_date('${sysdate}','YYYYMMDDhh24miss'),to_date('${sysdate}','YYYYMMDDhh24miss'),${updateAuthorId},'${blogUrlName}','${blogUrlName}','${describe}')
+		</if>
+		<if test="existType == 1">
+		update dm_blog set update_time = to_date('${sysdate}','YYYYMMDDhh24miss'),
+		update_author_id = ${updateAuthorId},describe = '${describe}'
+		where blog_name = '${blogName}'
+		</if>
+	</update>
+	
+	<!-- 获取文集数据 -->
+	<select id="getCollectionList" resultType="java.util.HashMap">
+	select * from dm_collection where author_id = ${collectionAuthorId}
+	</select>
+	
+	<!-- 获取文章 -->
+	<select id="getBlogList" resultType="java.util.HashMap">
+	select dc.collection_id,dc.collection_name,db.blog_id,db.blog_name,db.urlname,to_char(db.update_time,'YYYY-MM-DD hh24:mi:ss') update_time 
+		from dm_collection dc
+		inner join dm_blog db on dc.collection_id = db.collection_id and dc.author_id = db.author_id
+		where dc.author_id = 1
+		order by db.create_time desc
+	</select>
+	
+	<!-- 根据名字查询文章 -->
+	<select id="getBlogListByName" resultType="java.util.HashMap">
+	select * from dm_blog b 
+	inner join dm_collection dc on dc.collection_id = b.collection_id and dc.author_id = b.author_id
+	where b.author_id = '${blogAuthorId}' and b.collection_id = ${blogCollectionId} 
+	and b.blog_name = '${blogName}'
+	</select>
+	
+	<!-- 根据url获取文章详情 -->
+	<select id="getBlogInfoByUrl" resultType="java.util.HashMap">
+	 select db.blog_id blogId,db.blog_name blogname,
+		db.author_id authorId,u.user_name authorName,to_char(db.create_time,'YYYYMMdd') createTime,
+		to_char(db.update_time,'YYYYMMdd') updateTime,
+		dc.collection_id collectionId,dc.collection_name collectionName,
+		db.urlName
+		from dm_blog db
+		inner join dm_collection dc on db.collection_id = dc.collection_id
+		inner join da_user u on db.author_id = u.user_id
+		where db.urlName = '${url}'
+	</select>
+</mapper>

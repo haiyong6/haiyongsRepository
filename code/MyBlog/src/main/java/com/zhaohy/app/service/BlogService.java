@@ -31,4 +31,12 @@ public interface BlogService {
 	 */
 	List<Map<String, Object>> getBlogList(HttpServletRequest request, Map<String, Object> paramsMap);
 
+	/**
+	 * 根据url获取文章详情信息
+	 * @param request
+	 * @param paramsMap
+	 * @return
+	 */
+	List<Map<String, Object>> getBlogInfoByUrl(HttpServletRequest request, Map<String, Object> paramsMap);
+
 }

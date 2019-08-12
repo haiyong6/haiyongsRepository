@@ -27,7 +27,15 @@ public class BlogController {
 	@RequestMapping("/blog/view")
 	public String view(HttpServletRequest request, HttpServletResponse response) {
 		String url = request.getParameter("url");
+		Map<String, Object> paramsMap = new HashMap<String, Object>();
+		paramsMap.put("url", url);
+		List<Map<String, Object>> blogInfo = blogService.getBlogInfoByUrl(request, paramsMap);
+		Map<String, Object> blogMap = blogInfo.get(0);
 		request.setAttribute("blogUrl", "/blog/" + url);
+		request.setAttribute("blogName", blogMap.get("BLOGNAME"));
+		request.setAttribute("blogAuthorName", blogMap.get("AUTHORNAME"));
+		request.setAttribute("createTime", blogMap.get("CREATETIME"));
+		request.setAttribute("updateTime", blogMap.get("UPDATETIME"));
 		return "view";
 	}
 	
@@ -37,12 +45,23 @@ public class BlogController {
 	 */
 	@RequestMapping("/blog/blogIndex")
 	public String blogIndex(HttpServletRequest request, HttpServletResponse response) {
-		Map<String, Object> paramsMap = new HashMap<String, Object>();
-		List<Map<String, Object>> blogList = blogService.getBlogList(request, paramsMap);
-		request.setAttribute("blogList", blogList);
 		return "index";
 	}
 	
+	
+	/**
+	 * 获取文章标题列表
+	 * @return
+	 */
+	@RequestMapping("/blog/getBlogTitleInfo")
+	public void getBlogTitleInfo(HttpServletRequest request, HttpServletResponse response) {
+		Map<String, Object> paramsMap = new HashMap<String, Object>();
+		paramsMap.put("searchData", request.getParameter("searchData"));
+		List<Map<String, Object>> blogList = blogService.getBlogList(request, paramsMap);
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("blogList", blogList);
+		AppFrameworkUtil.renderJSON(response, AppFrameworkUtil.structureConfigParamsGroupJSONData(resultMap));
+	}
 	/**
 	 * 上传文件
 	 * @param request

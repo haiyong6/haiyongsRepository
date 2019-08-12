@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,15 +22,13 @@ public class UserController {
 	}
 	
 	@RequestMapping("/user/saveUser")
-	public void saveUser() {
+	public void saveUser(HttpServletRequest request, HttpServletResponse response) {
 		
 		Map<String, Object> paramsMap = new HashMap<String ,Object>();
-		paramsMap.put("userName", "zhaohy4");
-        paramsMap.put("sex", 1);
-        paramsMap.put("job", "java软件工程师");
-        paramsMap.put("tel", "189xxxx0598");
-        paramsMap.put("email", "1025XXXX40@qq.com");
-        paramsMap.put("hobby", "编程，运动");
+		paramsMap.put("userName", request.getParameter("userName"));
+		paramsMap.put("passWord", request.getParameter("passWord"));
+        paramsMap.put("email", request.getParameter("email"));
+        paramsMap.put("userTypeId", "2");
         userService.saveUser(paramsMap);
 	}
 
