@@ -42,7 +42,7 @@ h1 {
 		</h6>
 		<div class="tool" style="margin-right:25%">
 			<center>
-			<input id="search" type="text">&nbsp;&nbsp;<button id="searchButton" type="button" onclick="loadTitle();">搜索</button>
+			<input placeholder="请输入搜索标题..." id="search" type="text">&nbsp;&nbsp;<button id="searchButton" type="button" onclick="searchData()">搜索</button>
 			</center>
 		</div>
 		<div class="content" style="margin-left:24%;">
@@ -64,7 +64,14 @@ h1 {
 				</h4>
 			</c:forEach> --%>
 		</div>
-		
+		<div id="moreTool">
+			<center>
+				<a href="#" onclick="loadMore()" style="text-decoration:none;"><span id="loadMoreSpan" style="color:rgb(6, 85, 136);display:inline;">加载更多</span></a>
+				 &nbsp;&nbsp;&nbsp;
+				 <a href="#" onclick="loadAll()" style="text-decoration:none;"><span id="loadAllSpan" style="color:rgb(6, 85, 136);display:inline;">加载全部</span></a>
+			</center>
+		</div>
 	</div>
+	<input id="pageNum" type="hidden" value=1>
 </body>
 </html>

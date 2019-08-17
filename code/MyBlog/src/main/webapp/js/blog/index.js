@@ -1,12 +1,18 @@
 $(document).ready(function(){
 	//加载标题
-	loadTitle();
+	loadTitle(2);
 });
-function loadTitle(){
+function loadTitle(num){//num为1加载全部，2为加载更多
+	var path = document.getElementById("path").value;
+	var height = $(window).height();
+	var width = $(window).width();
+	var htmlValue = '<div class="loading_masker" style="height:'+height+'px;width:'+width+'px;position:fixed;top:0px;left:0px;text-align:center;verticle-align:middle;"><img style="margin-top:400px;" src="' + path + '/image/gif/loading.gif"/><div>';
+	$("html").append(htmlValue);
 	//请求页面数据遍历标题
 	var searchData = $("#search").val();
-	var path = document.getElementById("path").value;
-    var url = path + "/blog/getBlogTitleInfo.do?searchData=" + searchData;    //这里的“项目访问路径”要改为你自己的路径
+	var loadType = num;
+	var pageNum = $("#pageNum").val();
+    var url = path + "/blog/getBlogTitleInfo.do?searchData=" + searchData + "&pageNum=" + pageNum + "&loadType=" + loadType;    //这里的“项目访问路径”要改为你自己的路径
 	$.ajax({
         url : url,
         contentType: "application/json",
@@ -18,6 +24,14 @@ function loadTitle(){
         success : function(data){
         	$(".content").html("");
             var blogList = data.blogList;
+            var all = data.showAll;//是否已是全部 
+            if(true == all){
+            	$("#loadMoreSpan").css("display","none");
+            	$("#loadAllSpan").css("display","none");
+            } else{
+            	$("#loadMoreSpan").css("display","inline");
+            	$("#loadAllSpan").css("display","inline");
+            }
             var html = "";
             if(blogList.length > 0){
             	for(var i = 0; i < blogList.length; i++) {
@@ -41,7 +55,25 @@ function loadTitle(){
         },
         error : function(data){
         	alert(data);
+        },
+        complete:function (){  //在数据加载完成之后，要删除掉 正在加载的dom
+            $(".loading_masker").remove();
         }
     });
+};
+
+function loadMore(){
+	var pageNum = $("#pageNum").val();
+	pageNum++;
+	$("#pageNum").val(pageNum);
+	loadTitle(2);
+};
+
+function loadAll(){
+	loadTitle(1)
+};
+function searchData(){
+	$("#pageNum").val(1);
+	loadTitle(2);
 };
 

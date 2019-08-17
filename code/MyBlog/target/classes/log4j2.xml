@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="OFF" monitorInterval="1800">
     <properties>
-        <property name="LOG_HOME">/home/zhaohy/tomcat/logs</property>
+        <property name="LOG_HOME">/home/zhaohy/myspace/tomcat/logs</property>
         <property name="FILE_NAME">MyBlog</property>
     </properties>
 

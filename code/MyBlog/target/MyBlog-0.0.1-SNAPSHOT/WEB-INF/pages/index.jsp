@@ -16,8 +16,11 @@ h1 {
 	width:60%
 };
 </style>
+<script type="text/javascript" src="<%=request.getContextPath() %>/js/jquery-3.4.1/jquery-3.4.1.js"> </script>
+<script type="text/javascript" src="<%=request.getContextPath() %>/js/blog/index.js"></script>
 </head>
 <body class="body">
+	 <input id="path" type="hidden" value='<%=request.getContextPath() %>'>
 	<div class="conterner" style="width: 70%;margin-left:15%;color: #1F0909;">
 		<h1 style="border-bottom:1px solid #C5C5C5;padding-bottom:0.8125em;">
 			<span> <center>Hello! Wellcome to zhaohy's world!</center></span>
@@ -37,9 +40,14 @@ h1 {
 				</ul>
 			</center>
 		</h6>
-		<c:forEach items="${blogList}" var="blog">
-			<h3>
-				<div style="margin-left:24%;">
+		<div class="tool" style="margin-right:25%">
+			<center>
+			<input placeholder="请输入搜索标题..." id="search" type="text">&nbsp;&nbsp;<button id="searchButton" type="button" onclick="searchData()">搜索</button>
+			</center>
+		</div>
+		<div class="content" style="margin-left:24%;">
+			<%-- <c:forEach items="${blogList}" var="blog">
+				<h4>
 					<ul >
 						<li>
 								<a target="_blank" 
@@ -50,13 +58,20 @@ h1 {
 										&nbsp;&nbsp;&nbsp;</span>
 									
 								</a>
-								
 						</li>
 						<li style="display:block;font-size:13px;font-style: oblique;font-weight: 300;"><span>所属文集：${blog.COLLECTION_NAME}&nbsp;&nbsp;&nbsp;更新时间：${blog.UPDATE_TIME}</span></li>
 					</ul>
-				</div>
-			</h3>
-		</c:forEach>
+				</h4>
+			</c:forEach> --%>
+		</div>
+		<div id="moreTool">
+			<center>
+				<a href="#" onclick="loadMore()" style="text-decoration:none;"><span id="loadMoreSpan" style="color:rgb(6, 85, 136);display:inline;">加载更多</span></a>
+				 &nbsp;&nbsp;&nbsp;
+				 <a href="#" onclick="loadAll()" style="text-decoration:none;"><span id="loadAllSpan" style="color:rgb(6, 85, 136);display:inline;">加载全部</span></a>
+			</center>
+		</div>
 	</div>
+	<input id="pageNum" type="hidden" value=1>
 </body>
 </html>

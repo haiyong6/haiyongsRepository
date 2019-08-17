@@ -12,13 +12,11 @@
 $(document).ready(function(){
 	  $("#uploadButton").click(function(){
 		    var form = new FormData(document.getElementById("uploadForm"));
-		    alert(form.get("collectionId") + "   " + form.get("file"));
 		    for(var i = 0; i < form.length; i++){
 		    	console.log(form[i]);
 		    }
-		    alert($("select[name='collectionId']").val());
 		    var path = document.getElementById("path").value;
-		     var url = path + "/upload/uploadBlog.do";    //这里的“项目访问路径”要改为你自己的路径
+		    var url = path + "/upload/uploadBlog.do";    //这里的“项目访问路径”要改为你自己的路径
 		    $.ajax({
 		        url : url,
 		        data : form,
@@ -54,5 +52,6 @@ $(document).ready(function(){
 	</form>
 	
 	<input id="path" type="hidden" value='<%=request.getContextPath() %>'>
+	<h3>在线人数统计：${Count}</h3>
 </body>
 </html>

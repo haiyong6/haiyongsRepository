@@ -155,7 +155,7 @@
                     <target>1.7</target>
                      <compilerArguments>
                       <extdirs>src\main\webapp\WEB-INF\lib</extdirs>
-                      <bootclasspath>/home/zhaohy/software/jdk1.8.0_181/jre/lib/rt.jar</bootclasspath>
+                      <bootclasspath>/home/zhaohy/myspace/software/jdk1.8.0_181/jre/lib/rt.jar</bootclasspath>
                     </compilerArguments> 
                 </configuration>
             </plugin>

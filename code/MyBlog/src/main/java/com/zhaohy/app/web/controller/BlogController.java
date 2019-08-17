@@ -57,10 +57,11 @@ public class BlogController {
 	public void getBlogTitleInfo(HttpServletRequest request, HttpServletResponse response) {
 		Map<String, Object> paramsMap = new HashMap<String, Object>();
 		paramsMap.put("searchData", request.getParameter("searchData"));
-		List<Map<String, Object>> blogList = blogService.getBlogList(request, paramsMap);
-		Map<String, Object> resultMap = new HashMap<String, Object>();
-		resultMap.put("blogList", blogList);
-		AppFrameworkUtil.renderJSON(response, AppFrameworkUtil.structureConfigParamsGroupJSONData(resultMap));
+		paramsMap.put("loadType", request.getParameter("loadType"));//1为加载全部，2为加载更多
+		paramsMap.put("pageNum", request.getParameter("pageNum"));//默认为1
+		paramsMap.put("pageCount", 20);
+		String json = blogService.getBlogList(request, paramsMap);
+		AppFrameworkUtil.renderJSON(response, json);
 	}
 	/**
 	 * 上传文件

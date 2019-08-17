@@ -5,7 +5,7 @@
 <head>
 <meta charset="UTF-8">
 <link href="<%=request.getContextPath() %>/image/title.ico" rel="icon" type="image/x-icon" />
-<title>More learn more wanted!/title>
+<title>More learn more wanted!</title>
 </head>
 <style>
 body {

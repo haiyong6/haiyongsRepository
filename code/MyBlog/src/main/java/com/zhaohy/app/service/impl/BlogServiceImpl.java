@@ -126,9 +126,29 @@ public class BlogServiceImpl implements BlogService {
 	 * 获取文章
 	 */
 	@Override
-	public List<Map<String, Object>> getBlogList(HttpServletRequest request, Map<String, Object> paramsMap) {
+	public String getBlogList(HttpServletRequest request, Map<String, Object> paramsMap) {
+		String loadType = paramsMap.get("loadType").toString();
+		int pageNum = Integer.parseInt(paramsMap.get("pageNum").toString());
+		int pageCount = Integer.parseInt(paramsMap.get("pageCount").toString());
+		int showNum = pageNum*pageCount;
+		paramsMap.put("showNum", showNum);
+		List<Map<String, Object>> list = blogMapper.getBlogList(paramsMap);
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("showAll", true);//是否显示全部
+		if(list.size() > 0) {
+			int totalCount = Integer.parseInt(list.get(0).get("TOTALCOUNT").toString());
+			if(showNum < totalCount) {
+				resultMap.put("showAll", false);
+			} else {
+				resultMap.put("showAll", true);
+			}
+		}
+		if("1".equals(loadType)) {
+			resultMap.put("showAll", true);
+		}
+		resultMap.put("blogList", list);
 		
-		return blogMapper.getBlogList(paramsMap);
+		return AppFrameworkUtil.structureConfigParamsGroupJSONData(resultMap);
 	}
 
 	/**

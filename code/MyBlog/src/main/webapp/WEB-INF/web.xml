@@ -7,6 +7,10 @@
         version="3.0"
 >
   <display-name>MyBlog</display-name>
+  <!-- 网站在线人数统计监听器 -->
+  <listener>
+  	<listener-class>com.zhaohy.app.utils.OnLineCountListener</listener-class>
+  </listener>
   
   <!-- 启动spring 监听器-->
   <listener>

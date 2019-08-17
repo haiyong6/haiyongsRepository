@@ -21,6 +21,8 @@
 	
 	<!-- 获取文章 -->
 	<select id="getBlogList" resultType="java.util.HashMap">
+	with t1 as(
+	select t.*,rowNum rowNums from (
 	select dc.collection_id,dc.collection_name,db.blog_id,db.blog_name,db.urlname,to_char(db.update_time,'YYYY-MM-DD hh24:mi:ss') update_time 
 		from dm_collection dc
 		inner join dm_blog db on dc.collection_id = db.collection_id and dc.author_id = db.author_id
@@ -28,7 +30,13 @@
 		<if test='searchData != null and searchData != ""'>
 		and db.blog_name like '%${searchData}%'
 		</if>
-		order by db.create_time desc
+		order by db.create_time desc) t),
+		t2 as (select count(1) totalCount from t1)
+		select t1.*,t2.totalcount from t1,t2 
+		where 1=1
+		<if test='loadType == 2'>
+		and t1.rowNums <![CDATA[ <= ]]>${showNum} 
+		</if> 
 	</select>
 	
 	<!-- 根据名字查询文章 -->
