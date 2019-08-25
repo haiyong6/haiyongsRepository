@@ -39,4 +39,11 @@ public interface BlogMapper {
 	 */
 	List<Map<String, Object>> getBlogInfoByUrl(Map<String, Object> paramsMap);
 
+	/**
+	 * 发布版本日志
+	 * @param paramsMap
+	 * @return
+	 */
+	int createVersionLog(Map<String, Object> paramsMap);
+
 }

@@ -1,5 +1,7 @@
 package com.zhaohy.app.web.controller;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,10 +10,14 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.jasig.cas.client.authentication.AttributePrincipal;
+import org.jasig.cas.client.util.AbstractCasFilter;
+import org.jasig.cas.client.validation.Assertion;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.zhaohy.app.service.BlogService;
+import com.zhaohy.app.service.UserService;
 import com.zhaohy.app.utils.AppFrameworkUtil;
 
 @Controller
@@ -19,6 +25,8 @@ public class BlogController {
 	
 	@Resource
 	private BlogService blogService;
+	@Resource
+	public UserService userService;
 	
 	/**
 	 * 详情页
@@ -45,6 +53,8 @@ public class BlogController {
 	 */
 	@RequestMapping("/blog/blogIndex")
 	public String blogIndex(HttpServletRequest request, HttpServletResponse response) {
+		List<Map<String, Object>> userList = AppFrameworkUtil.getUserInfo(request, userService);//获取用户信息
+		AppFrameworkUtil.setUserLoginInfo(request, userList);//储存用户登录
 		return "index";
 	}
 	
@@ -79,13 +89,36 @@ public class BlogController {
 	 * 跳转到上传页
 	 * @return
 	 */
-	@RequestMapping("/blog/upload")
+	@RequestMapping("/blog/manager/upload")
 	public String upload(HttpServletRequest request, HttpServletResponse response) {
+		List<Map<String, Object>> userList = AppFrameworkUtil.getUserInfo(request, userService);//获取用户信息
+		AppFrameworkUtil.setUserLoginInfo(request, userList);
+		if(userList.size() > 0) {
+			Map<String, Object> userMap = userList.get(0);
+			if("1".equals(userMap.get("USER_TYPE_ID").toString())) {//管理员
+				Map<String, Object> paramsMap = new HashMap<String, Object>();
+				paramsMap.put("collectionAuthorId", "1");
+				List<Map<String, Object>> collectionList = blogService.getCollectionList(request, paramsMap);
+				request.setAttribute("collectionList", collectionList);
+				return "/blogManagement/uploadBlog";
+			}
+		}
+		return "index";
+	}
+	
+	/**
+	 * 发布版本日志
+	 * @param request
+	 * @param response
+	 */
+	@RequestMapping("/blog/manager/createVersionLog")
+	public void createVersionLog(HttpServletRequest request, HttpServletResponse response) {
 		Map<String, Object> paramsMap = new HashMap<String, Object>();
-		paramsMap.put("collectionAuthorId", "1");
-		List<Map<String, Object>> collectionList = blogService.getCollectionList(request, paramsMap);
-		request.setAttribute("collectionList", collectionList);
-		
-		return "blogManagement/uploadBlog";
+		SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
+        paramsMap.put("sysdate", df.format(new Date()));
+        paramsMap.put("versionTag", request.getParameter("versionTag"));
+        paramsMap.put("versionDescribe", request.getParameter("versionDescribe"));
+		String json = blogService.createVersionLog(request, paramsMap);
+		AppFrameworkUtil.renderJSON(response, json);
 	}
 }

@@ -4,12 +4,21 @@ import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.jasig.cas.client.authentication.AttributePrincipal;
+import org.jasig.cas.client.util.AbstractCasFilter;
+import org.jasig.cas.client.validation.Assertion;
+
+import com.zhaohy.app.service.UserService;
+
 import flexjson.JSONSerializer;
 
 public class AppFrameworkUtil {
@@ -171,5 +180,44 @@ public class AppFrameworkUtil {
 		SimpleDateFormat s = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 		String curDate = s.format(calendar.getTime());  //当前日期
 		return curDate;
+	}
+
+	/**
+	 * 获取用户信息
+	 * @param request
+	 * @param userService
+	 * @return
+	 */
+	public static List<Map<String, Object>> getUserInfo(HttpServletRequest request, UserService userService) {
+		List<Map<String, Object>> userList = new ArrayList<Map<String, Object>>();
+		if(null == request.getSession().getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION)) {
+			System.out.println("用户未登录！");
+		} else {
+			Assertion assertion = (Assertion) request.getSession().getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION);  
+			AttributePrincipal principal = assertion.getPrincipal();  
+			String userName = principal.getName(); 
+			System.out.println("userName=op==" + userName);
+			Map<String, Object> paramsMap = new HashMap<String, Object>();
+			paramsMap.put("userName", userName);
+			userList = userService.getUserInfoByUserName(request, paramsMap);
+		}
+		return userList;
+	}
+
+	/**
+	 * 储存用户登录
+	 * @param request
+	 * @param userList
+	 */
+	public static void setUserLoginInfo(HttpServletRequest request, List<Map<String, Object>> userList) {
+		if(userList.size() > 0) {
+			Map<String, Object> userMap = userList.get(0);
+			request.getSession().setAttribute("userName", userMap.get("USER_NAME"));
+			request.getSession().setAttribute("userId", userMap.get("USER_ID"));
+			request.getSession().setAttribute("userType", userMap.get("USER_TYPE_ID"));
+			request.getSession().setAttribute("logined", true);
+		} else {
+			request.getSession().setAttribute("logined", false);
+		}
 	}
 }

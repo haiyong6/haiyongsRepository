@@ -37,6 +37,39 @@ $(document).ready(function(){
 	  
 	  
 	});
+	
+function backToLogin(){
+	window.location="/MyBlog/user/logout.do";
+};
+function submitVersionLog(){
+	var versionTag = $("#versionTag").val();
+	var versionDescribe = $("#versionDescribe").val();
+	if(versionTag == undefined || $.trim(versionTag) == "" || $.trim(versionTag) == null){
+		alert('请填写正确的版本号！');
+		return
+	} 
+	if(versionDescribe == undefined || $.trim(versionDescribe) == "" || $.trim(versionDescribe) == null){
+		alert('请填写版本描述！');
+		return
+	}
+	var path = document.getElementById("path").value;
+	var url = path + "/blog/manager/createVersionLog.do?versionTag=" + versionTag + "&versionDescribe=" + versionDescribe;
+	$.ajax({
+        url : url,
+        type : 'post',
+        dataType:"json",
+        processData:false,
+        contentType:false,
+        async:true,
+        success : function(data){
+            alert(data.info);
+            //window.location.reload();
+        },
+        error : function(data){
+        	alert(data);
+        }
+    });
+};
 </script>
 <body>
 	<form id="uploadForm"  enctype="multipart/form-data" method="post">
@@ -53,5 +86,12 @@ $(document).ready(function(){
 	
 	<input id="path" type="hidden" value='<%=request.getContextPath() %>'>
 	<h3>在线人数统计：${Count}</h3>
+	<h3><button id="backSystem" onclick="backToLogin()">退出</button></h3>
+	<h3>
+		发布版本日志：<input type="text" id="versionTag" placeholder="请输入版本号..." >
+			<input type="text" placeholder="请输入版本描述..." id="versionDescribe" style="width:20%;height:10%"> 
+			<button onclick="submitVersionLog()">发布</button>
+	</h3>
+	
 </body>
 </html>

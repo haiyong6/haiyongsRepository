@@ -1,0 +1,9 @@
+{
+  "@class" : "org.apereo.cas.services.RegexRegisteredService",
+  "serviceId" : "^(https|imaps|http)://127.0.0.1:8081/ssmTest05-1/.*",
+  "name" : "HTTPS and IMAPS",
+  "id" : 10000003,
+  "description" : "This service definition authorizes all application urls that support HTTPS and IMAPS protocols.",
+  "evaluationOrder" : 10001,
+  "theme" : "app2"
+}

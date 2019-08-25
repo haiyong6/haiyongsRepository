@@ -59,4 +59,8 @@
 		inner join da_user u on db.author_id = u.user_id
 		where db.urlName = '${url}'
 	</select>
+	
+	<update id="createVersionLog">
+	insert into da_version_log values ('${versionTag}',to_date('${sysdate}','YYYYMMDDhh24miss'),'${versionDescribe}')
+	</update>
 </mapper>

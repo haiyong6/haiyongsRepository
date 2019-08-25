@@ -20,8 +20,7 @@ h1 {
 <script type="text/javascript" src="<%=request.getContextPath() %>/js/blog/index.js"></script>
 </head>
 <body class="body">
-	 <input id="path" type="hidden" value='<%=request.getContextPath() %>'>
-	<div class="conterner" style="width: 70%;margin-left:15%;color: #1F0909;">
+	<div class="conterner" style="width: 50%;margin-left:15%;color: #1F0909;float:left;">
 		<h1 style="border-bottom:1px solid #C5C5C5;padding-bottom:0.8125em;">
 			<span> <center>Hello! Wellcome to zhaohy's world!</center></span>
 		</h1>
@@ -72,6 +71,40 @@ h1 {
 			</center>
 		</div>
 	</div>
+	
+	<div class="conterner1" style="width: 20%;margin-left:15%;color: #1F0909;float:right;">
+		<h3>
+				<div id="loginButton" style="display:block;">
+					<a href="<%=request.getContextPath() %>/blog/manager/upload.do" style="text-decoration:none;">
+						<span style="color:rgb(6, 85, 136);display:inline;">登录</span>
+						<span style="color:black;font-size:10px;font-weight:400;display:inline;">可留言</span>
+					</a>
+					&nbsp;&nbsp;
+					<a href="#" onclick="signUp()" style="text-decoration:none;">
+						<span style="color:rgb(6, 85, 136);">注册</span>
+					</a>	
+				</div>
+				<div id="userHello" style="display:none;">
+					<span>hi,${userName}</span> &nbsp;&nbsp;
+					<a href="#" id="backSystem" onclick="backToLogin()" style="text-decoration:none;">
+						<span style="color:rgb(6, 85, 136);display:inline;font-size:12px;">退出登录</span>
+					</a href="#">
+				</div>
+			</a>
+		</h3>
+		<!-- <h5>
+			<span>版本更新信息：</span>
+			<ul>
+				<li>josjosj</li>
+				<li>josjosj</li>
+			</ul>
+		</h5> -->
+	</div>
 	<input id="pageNum" type="hidden" value=1>
+	<input id="logined" type="hidden" value=${logined}>
+	<input id="userName" type="hidden" value=${userName}>
+	<input id="userId" type="hidden" value=${userId}>
+	<input id="userType" type="hidden" value=${userType}>
+	<input id="path" type="hidden" value='<%=request.getContextPath() %>'>
 </body>
 </html>

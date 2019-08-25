@@ -158,5 +158,24 @@ public class BlogServiceImpl implements BlogService {
 	public List<Map<String, Object>> getBlogInfoByUrl(HttpServletRequest request, Map<String, Object> paramsMap) {
 		return blogMapper.getBlogInfoByUrl(paramsMap);
 	}
+
+	/**
+	 * 发布版本日志
+	 */
+	@Override
+	public String createVersionLog(HttpServletRequest request, Map<String, Object> paramsMap) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		boolean success = false;
+		String info = "发布失败！";
+		int rt = 0;
+		rt += blogMapper.createVersionLog(paramsMap);
+		if(rt > 0) {
+			success = true;
+			info = "发布成功！";
+		}
+		resultMap.put("info", info);
+		resultMap.put("success", success);
+		return AppFrameworkUtil.structureConfigParamsGroupJSONData(resultMap);
+	}
 	
 }

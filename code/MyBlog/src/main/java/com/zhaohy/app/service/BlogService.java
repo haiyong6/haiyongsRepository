@@ -39,4 +39,12 @@ public interface BlogService {
 	 */
 	List<Map<String, Object>> getBlogInfoByUrl(HttpServletRequest request, Map<String, Object> paramsMap);
 
+	/**
+	 * 发布版本日志
+	 * @param request
+	 * @param paramsMap
+	 * @return
+	 */
+	String createVersionLog(HttpServletRequest request, Map<String, Object> paramsMap);
+
 }

@@ -1,4 +1,14 @@
 $(document).ready(function(){
+	//登录按钮是否显示
+	var logined = $("#logined").val();
+	console.log(logined);
+	if("true" == logined){
+		$("#loginButton").css("display","none");
+		$("#userHello").css("display", "block");
+	} else{
+		$("#loginButton").css("display", "block");
+		$("#userHello").css("display", "none");
+	}
 	//加载标题
 	loadTitle(2);
 });
@@ -76,4 +86,9 @@ function searchData(){
 	$("#pageNum").val(1);
 	loadTitle(2);
 };
-
+function backToLogin(){
+	window.location="/MyBlog/user/logout.do";
+};
+function signUp(){
+	window.location="/MyBlog/user/signup.do";
+};
