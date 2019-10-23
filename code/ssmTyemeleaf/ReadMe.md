@@ -1,1 +1,1 @@
-Mybatis整合spring  - 没有Mapper实现类
+ssm配置Tymeleaf替代jsp实例
