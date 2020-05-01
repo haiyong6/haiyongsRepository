@@ -1,0 +1,115 @@
+<html>
+<head>
+<title>SuperSorter options</title>
+<script type="text/javascript" src="jquery-2.0.2.min.js"></script>
+<script type="text/javascript" src="constants.js"></script>
+<script type="text/javascript" src="BookmarkSortPrefs.js"></script>
+<script type="text/javascript" src="util.js"></script>
+<script type="text/javascript" src="prefsHelper.js"></script>
+<script type="text/javascript" src="options.js"></script>
+<script type="text/javascript" src="sorter2.js"></script>
+<script type="text/javascript" src="sequence.js"></script>
+<script type="text/javascript" src="deduper.js"></script>
+<script type="text/javascript" src="mathuuid.js"></script>
+<script type="text/javascript" src="optionsPage.js"></script>
+<link rel="stylesheet" type="text/css" href="styles.css" />
+</head>
+
+<body>
+
+	<h1>
+		<img src="go-jump-32.png" width="32" height="32"
+			alt="SuperSorter icon" />&nbsp;SuperSorter options
+	</h1>
+	<p>
+		<label for="sortorder">Bookmark sort order:</label> <select
+			id="sortorder">
+			<option id="sortorder_option_ascending" value="ascending" selected>Ascending</option>
+			<option id="sortorder_option_descending" value="descending">Descending</option>
+		</select>
+	</p>
+	<p>
+		<input type="checkbox" id="autoSort" /><label for="autoSort">Sort
+			automatically (no need to click the button).</label>
+	</p>
+	<p>
+		<input type="checkbox" id="foldersFirst" checked /><label
+			for="foldersFirst">Put folders before bookmarks.</label>
+	<p>
+		<input type="checkbox" id="deleteEmptyFolders" /><label
+			for="deleteEmptyFolders">Delete empty folders.</label>
+	</p>
+	<p>
+		<input type="checkbox" id="mergeNeighbours" checked /><label
+			for="mergeNeighbours">Merge neighbouring folders that have
+			the same name.</label>
+	</p>
+	<p>
+		<input type="checkbox" id="deDupeLocal" checked /><label
+			for="deDupeLocal">Delete duplicate bookmarks within each
+			folder.</label>
+	</p>
+	<p>
+		<input type="checkbox" id="caseSensitive" /><label
+			for="caseSensitive">Use case-sensitive name comparisons.</label>
+	</p>
+	<p>
+		<input type="checkbox" id="ignoreBookmarksBar" /><label
+			for="ignoreBookmarksBar">Ignore Bookmarks Bar.</label>
+	</p>
+	<p>
+		<button id="saveButton" title="Save these settings.">Save
+			options</button>
+		&nbsp;
+		<button id="restoreDefaultsButton"
+			title="Set all options back to their initial state and save them.">Restore
+			defaults</button>
+		&nbsp; <span id="status"></span>
+	</p>
+
+
+	<p>
+		<button id="deDupeGlobalButton"
+			title="Search the whole bookmarks tree for duplicates and display them below.">Find
+			all duplicates now</button>
+		&nbsp;<span id="deDupeLoaderSpan"><img
+			src="loader_yellow_on_blue.gif" alt="Animation"
+			id="deDupeLoaderImage" />&nbsp;Working... </span>
+	</p>
+
+	<div id="dupeDisplay">
+		<div id="deDupeButtons">
+
+			<button id="selectAllButFirstInEachGroup"
+				title="Select all items except the first in each group of duplicates.">
+				Select all but first</button>
+
+			<button id="selectAllButLastInEachGroup"
+				title="Select all items except the last in each group of duplicates.">
+				Select all but last</button>
+
+			<button id="invertSelection"
+				title="Deselect everything that is currently selected, and select everything that is not currently selected.">Invert
+				selection</button>
+
+			<button id="refreshDuplicates"
+				title="Refresh the list, clearing all selections.">Refresh
+				+ deselect</button>
+			<button id="globalDeDupeButton" title="Delete all checked items.">Delete
+				selected</button>
+
+			<span id="confirmCancelButtons" style="visibility: hidden;">
+				<button id="confirmButton" title="Delete them now!">Confirm</button>
+				<button id="cancelButton" title="Don't delete.">Cancel</button>
+			</span>
+			<button id="hideButton" title="Hide the duplicates display.">Close</button>
+		</div>
+
+	</div>
+
+
+	<div style="display: none;" id="thisIsTheOptionsPage"></div>
+
+
+</body>
+</html>

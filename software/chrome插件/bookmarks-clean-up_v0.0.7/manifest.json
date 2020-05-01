@@ -1,0 +1,3 @@
+{
+"update_url": "https://clients2.google.com/service/update2/crx",
+"description":"Find and remove duplicated bookmarks manually and in batches, get rid of broken bookmark links and empty folders.","version":"0.0.7","manifest_version":2,"name":"Bookmarks clean up","icons":{"48":"icons/icon48.png","128":"icons/icon128.png"},"browser_action":{"default_icon":"icons/icon32.png"},"permissions":["activeTab","storage","bookmarks","http://*/*","https://*/*"],"background":{"scripts":["background.js"],"persistent":false},"options_ui":{"page":"options.html"},"content_security_policy":"script-src 'self' 'unsafe-eval'; object-src 'self'"}
